@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+**/bin/
+**/obj/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Local runtime (logs, pids)
+.run/
+
+# User secrets / local overrides
+**/appsettings.*.local.json
+**/secrets.json
+
+# Build artifacts
+*.tsbuildinfo
+frontend/next-env.d.ts

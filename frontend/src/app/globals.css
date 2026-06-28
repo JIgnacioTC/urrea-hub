@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+/* Tailwind CSS 4 — tokens URREA en @theme (ver frontend/BRANDING.md) */
+:root {
+  --urrea-primary: #023764;
+  --urrea-secondary: #2e7fa8;
+  --urrea-bg: #ffffff;
+  --urrea-bg-soft: #f5f6f7;
+  --urrea-text: #1a1a1a;
+  --urrea-text-muted: #6f7478;
+  --urrea-border: #d9dde1;
+  --urrea-accent-sand: #d8c7ae;
+  --urrea-chrome: #c8d0d6;
+}
+
+@theme inline {
+  --color-urrea-primary: var(--urrea-primary);
+  --color-urrea-secondary: var(--urrea-secondary);
+  --color-urrea-bg: var(--urrea-bg);
+  --color-urrea-bg-soft: var(--urrea-bg-soft);
+  --color-urrea-text: var(--urrea-text);
+  --color-urrea-text-muted: var(--urrea-text-muted);
+  --color-urrea-border: var(--urrea-border);
+  --color-urrea-accent-sand: var(--urrea-accent-sand);
+  --color-urrea-chrome: var(--urrea-chrome);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --shadow-soft: 0 1px 2px rgb(2 55 100 / 0.04), 0 4px 16px rgb(2 55 100 / 0.06);
+  --shadow-soft-lg: 0 4px 6px rgb(2 55 100 / 0.05), 0 12px 32px rgb(2 55 100 / 0.1);
+  --shadow-glow: 0 0 0 1px rgb(46 127 168 / 0.15), 0 8px 24px rgb(46 127 168 / 0.12);
+  --animate-fade-up: fade-up 0.4s ease-out both;
+}
+
+@layer base {
+  body {
+    @apply min-h-[100dvh] bg-urrea-bg-soft font-sans text-urrea-text antialiased;
+  }
+}
+
+@layer utilities {
+  .gradient-urrea {
+    background: linear-gradient(145deg, #023764 0%, #034a7a 45%, #2e7fa8 100%);
+  }
+
+  .gradient-urrea-subtle {
+    background: linear-gradient(180deg, rgb(245 246 247) 0%, rgb(255 255 255) 100%);
+  }
+
+  .glass-nav {
+    @apply border-t border-urrea-border/60 bg-white/90 backdrop-blur-md backdrop-saturate-150;
+  }
+
+  .pattern-dots-light {
+    background-image: radial-gradient(circle at 1px 1px, rgb(255 255 255 / 0.12) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+
+  .safe-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .main-with-mobile-nav {
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .main-with-mobile-nav {
+      padding-bottom: 0;
+    }
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.4s ease-out both;
+}
+
+.animate-fade-up-delay-1 {
+  animation: fade-up 0.45s ease-out 0.05s both;
+}
