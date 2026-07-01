@@ -10,7 +10,25 @@ export type PortalNavLink = {
   jefeOnly?: boolean;
   rhOnly?: boolean;
   tiOnly?: boolean;
+  children?: PortalNavLink[];
 };
+
+export type WorkspaceType = "portal" | "rh" | "ti" | "admin-ti" | "admin-dh";
+
+export type WorkspaceConfig = {
+  id: WorkspaceType;
+  label: string;
+  shortLabel: string;
+  icon: DhIconName;
+  rhOnly?: boolean;
+  tiOnly?: boolean;
+};
+
+export const WORKSPACES: WorkspaceConfig[] = [
+  { id: "portal", label: "Portal colaborador", shortLabel: "Portal", icon: "users" },
+  { id: "rh", label: "Administración RH", shortLabel: "Admin RH", icon: "dashboard", rhOnly: true },
+  { id: "ti", label: "Plataforma TI", shortLabel: "Admin TI", icon: "analytics", tiOnly: true },
+];
 
 export type PortalNavSection = {
   title: string;
@@ -42,6 +60,7 @@ const MI_DIA_LINKS: PortalNavLink[] = [
   { href: "/portal/mi-ficha", label: "Mi ficha", shortLabel: "Ficha", icon: "users" },
   { href: "/portal/asistencia", label: "Mi asistencia", shortLabel: "Asist.", icon: "clock" },
   { href: "/portal/vacaciones", label: "Vacaciones y permisos", shortLabel: "Tiempo", icon: "calendar" },
+  { href: "/portal/permisos", label: "Mis Permisos", shortLabel: "Permisos", icon: "calendar" },
   { href: "/portal/onboarding", label: "Mi onboarding", shortLabel: "Onboard.", icon: "onboarding" },
 ];
 
@@ -216,11 +235,18 @@ export const RH_SECTIONS: PortalNavSection[] = [
   },
   NUCLEO_HCM_SECTION,
   {
+    title: "Control de asistencia",
+    links: [
+      { href: "/rh/asistencias", label: "Importar asistencias", shortLabel: "Asistencias", icon: "clock" },
+    ]
+  },
+  {
     title: "Permisos y ausencias",
     links: [
       { href: "/rh/permisos", label: "Catálogo LFT", shortLabel: "Catálogo", icon: "calendar" },
       { href: "/rh/permisos/solicitudes", label: "Solicitudes", shortLabel: "Solic.", icon: "calendar" },
       { href: "/rh/reportes", label: "Reportes", shortLabel: "Report.", icon: "analytics" },
+      { href: "/rh/configuracion-permisos", label: "Configurar permisos", shortLabel: "Config", icon: "calendar" },
     ],
   },
   {

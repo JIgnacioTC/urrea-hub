@@ -66,6 +66,7 @@ public static class DependencyInjection
         services.AddScoped<IAbsenceAdminService, AbsenceAdminService>();
         services.AddScoped<IAttendanceService, AttendanceService>();
         services.AddScoped<IAttendanceAdminService, AttendanceAdminService>();
+        services.AddScoped<IAsistenciaImportService, AsistenciaImportService>();
         services.AddScoped<IOnboardingService, OnboardingService>();
         services.AddScoped<IOnboardingAdminService, OnboardingAdminService>();
         services.AddScoped<IRequisitionService, RequisitionService>();

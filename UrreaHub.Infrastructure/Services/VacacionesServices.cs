@@ -218,6 +218,7 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
         var solicitud = new SolicitudAusencia
         {
             Id = Guid.NewGuid(),
+            Folio = "PERM-" + DateTime.UtcNow.ToString("yyMMdd") + "-" + Guid.NewGuid().ToString().Substring(0, 4).ToUpper(),
             ColaboradorId = colaboradorId,
             TipoAusenciaId = dto.TipoAusenciaId,
             FechaInicio = fechaInicio,
@@ -242,7 +243,11 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
         await _context.SaveChangesAsync(cancellationToken);
 
         if (dto.Enviar)
+        {
             await NotificarNuevaSolicitudAsync(solicitud.Id, cancellationToken);
+            if (!string.IsNullOrEmpty(tipo.WebhookUrl))
+                await EjecutarWebhookAsync(solicitud, tipo.WebhookUrl, cancellationToken);
+        }
 
         return Result<SolicitudAusenciaDto>.Ok(await MapDtoAsync(solicitud.Id, cancellationToken));
     }
@@ -263,6 +268,9 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
         await _context.SaveChangesAsync(cancellationToken);
         await _audit.LogCambioEstadoAsync("SolicitudAusencia", solicitud.Id, "Borrador", "Pendiente", colaboradorId.ToString(), null, cancellationToken);
         await NotificarNuevaSolicitudAsync(solicitud.Id, cancellationToken);
+
+        if (!string.IsNullOrEmpty(tipo.WebhookUrl))
+            await EjecutarWebhookAsync(solicitud, tipo.WebhookUrl, cancellationToken);
 
         return Result<SolicitudAusenciaDto>.Ok(await MapDtoAsync(solicitud.Id, cancellationToken));
     }
@@ -731,5 +739,30 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
             $"Tu solicitud fue {decision}",
             $"Tu solicitud de {solicitud.TipoAusencia.Nombre} del {solicitud.FechaInicio:dd/MM/yyyy} al {solicitud.FechaFin:dd/MM/yyyy} fue {decision}.",
             solicitud.Id), cancellationToken);
+    }
+
+    private async Task EjecutarWebhookAsync(SolicitudAusencia solicitud, string webhookUrl, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var client = new HttpClient();
+            var payload = new
+            {
+                solicitud.Id,
+                solicitud.Folio,
+                solicitud.ColaboradorId,
+                solicitud.TipoAusenciaId,
+                solicitud.FechaInicio,
+                solicitud.FechaFin,
+                solicitud.DiasSolicitados,
+                solicitud.Estado
+            };
+            var content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+            await client.PostAsync(webhookUrl, content, cancellationToken);
+        }
+        catch
+        {
+            // Fallback silencioso en caso de error de red
+        }
     }
 }

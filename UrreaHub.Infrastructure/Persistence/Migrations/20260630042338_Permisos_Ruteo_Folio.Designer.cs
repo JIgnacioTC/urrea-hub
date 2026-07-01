@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UrreaHub.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using UrreaHub.Infrastructure.Persistence;
 namespace UrreaHub.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(UrreaHubDbContext))]
-    partial class UrreaHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260630042338_Permisos_Ruteo_Folio")]
+    partial class Permisos_Ruteo_Folio
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

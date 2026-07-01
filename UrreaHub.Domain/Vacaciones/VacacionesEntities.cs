@@ -31,6 +31,10 @@ public class TipoAusencia : BaseEntity
     public string? Descripcion { get; set; }
     public string? Icono { get; set; }
     public int Orden { get; set; }
+    public int? IdLegacy { get; set; }
+    public string? WebhookUrl { get; set; }
+    public Guid? AreaDestinoId { get; set; }
+    public Area? AreaDestino { get; set; }
 
     public ICollection<SolicitudAusencia> Solicitudes { get; set; } = new List<SolicitudAusencia>();
 }
@@ -73,6 +77,7 @@ public class DiaInhabil : BaseEntity
 
 public class SolicitudAusencia : BaseEntity
 {
+    public string Folio { get; set; } = string.Empty;
     public DateTime FechaInicio { get; set; }
     public DateTime FechaFin { get; set; }
     public decimal DiasSolicitados { get; set; }
