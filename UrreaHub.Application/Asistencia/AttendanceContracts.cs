@@ -143,6 +143,29 @@ public record IncidenciaNominaAsistenciaDto(
 
 public record DecisionCorreccionDto(string? Comentario);
 
+public record SolicitudCambioHorarioDto(
+    Guid Id,
+    Guid ColaboradorId,
+    string ColaboradorNombre,
+    Guid TurnoActualId,
+    string TurnoActualNombre,
+    Guid TurnoSolicitadoId,
+    string TurnoSolicitadoNombre,
+    string Motivo,
+    string Estado,
+    string? ComentarioAprobador,
+    Guid? AprobadorId,
+    string? AprobadorNombre,
+    DateTime? FechaDecision,
+    DateTime CreatedAt);
+
+public record CrearSolicitudCambioHorarioDto(
+    Guid TurnoSolicitadoId,
+    string Motivo);
+
+public record DecisionCambioHorarioDto(
+    string? Comentario);
+
 public interface IAttendanceService
 {
     Task<AttendanceSummaryDto> GetMySummaryAsync(Guid colaboradorId, CancellationToken cancellationToken = default);
@@ -156,6 +179,14 @@ public interface IAttendanceService
     Task<Result<CorreccionDto>> RejectCorrectionAsync(Guid aprobadorId, Guid correctionId, DecisionCorreccionDto dto, bool isRhAdmin, CancellationToken cancellationToken = default);
     Task<TeamAttendanceSummaryDto> GetTeamSummaryAsync(Guid jefeId, DateTime fecha, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<IncidenciaDto>> GetTeamIncidentsAsync(Guid jefeId, DateTime? desde, DateTime? hasta, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<TurnoDto>> GetAvailableShiftsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<AsignacionTurnoDto>> GetMyShiftHistoryAsync(Guid colaboradorId, CancellationToken cancellationToken = default);
+    Task<Result<SolicitudCambioHorarioDto>> CreateShiftChangeRequestAsync(Guid colaboradorId, CrearSolicitudCambioHorarioDto dto, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SolicitudCambioHorarioDto>> GetMyShiftChangeRequestsAsync(Guid colaboradorId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SolicitudCambioHorarioDto>> GetPendingShiftChangeRequestsAsync(Guid jefeId, CancellationToken cancellationToken = default);
+    Task<Result<SolicitudCambioHorarioDto>> ApproveShiftChangeRequestAsync(Guid aprobadorId, Guid requestId, DecisionCambioHorarioDto dto, bool isRhAdmin, CancellationToken cancellationToken = default);
+    Task<Result<SolicitudCambioHorarioDto>> RejectShiftChangeRequestAsync(Guid aprobadorId, Guid requestId, DecisionCambioHorarioDto dto, bool isRhAdmin, CancellationToken cancellationToken = default);
 }
 
 public interface IAttendanceAdminService

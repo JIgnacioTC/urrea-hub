@@ -59,6 +59,7 @@ export const NUCLEO_HCM_SECTION: PortalNavSection = {
 const MI_DIA_LINKS: PortalNavLink[] = [
   { href: "/portal/mi-ficha", label: "Mi ficha", shortLabel: "Ficha", icon: "users" },
   { href: "/portal/asistencia", label: "Mi asistencia", shortLabel: "Asist.", icon: "clock" },
+  { href: "/portal/horarios", label: "Mis Horarios", shortLabel: "Horarios", icon: "clock" },
   { href: "/portal/vacaciones", label: "Vacaciones y permisos", shortLabel: "Tiempo", icon: "calendar" },
   { href: "/portal/permisos", label: "Mis Permisos", shortLabel: "Permisos", icon: "calendar" },
   { href: "/portal/onboarding", label: "Mi onboarding", shortLabel: "Onboard.", icon: "onboarding" },
@@ -77,6 +78,7 @@ const MI_DESARROLLO_LINKS: PortalNavLink[] = [
 const MI_EQUIPO_LINKS: PortalNavLink[] = [
   { href: "/portal/mi-equipo", label: "Mi equipo", shortLabel: "Equipo", icon: "users", jefeOnly: true },
   { href: "/portal/aprobaciones", label: "Aprobaciones", shortLabel: "Aprob.", icon: "calendar", jefeOnly: true },
+  { href: "/portal/aprobaciones/horarios", label: "Aprobar Horarios", shortLabel: "Aprob. hor.", icon: "clock", jefeOnly: true },
   { href: "/portal/equipo/asistencia", label: "Asistencia del equipo", shortLabel: "Eq. asist.", icon: "clock", jefeOnly: true },
   { href: "/portal/equipo/asistencia/pendientes", label: "Validar asistencia", shortLabel: "Validar", icon: "clock", jefeOnly: true },
   { href: "/portal/equipo/onboarding", label: "Onboarding del equipo", shortLabel: "Onboard.", icon: "onboarding", jefeOnly: true },

@@ -1,11 +1,31 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { DhIcon } from "@/components/dh/shared/icons";
-import { DhSearchInput } from "@/components/dh/shared/ui";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { portalService } from "@/lib/services/portalService";
+import { getSession, isRhAdmin, isTiAdmin, type Session } from "@/lib/auth";
+import {
+  ADMIN_DH_SECTIONS,
+  ADMIN_TI_SECTIONS,
+  buildMobileNav,
+  buildPortalSections,
+  filterNavSections,
+  flattenRhLinks,
+  flattenTiLinks,
+  RH_SECTIONS,
+  TI_SECTIONS,
+  type PortalNavSection,
+} from "@/lib/portal/navigation";
+import type { ColaboradorPerfil } from "@/lib/types";
+
+function LoadingScreen() {
+  return (
+    <div className="flex h-[100dvh] items-center justify-center bg-slate-50">
+      <div className="h-8 w-8 animate-pulse rounded-full bg-urrea-primary/20" />
+    </div>
+  );
+}
 
 function PortalShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

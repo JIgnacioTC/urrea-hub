@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { API_URL } from "@/lib/api";
 import { v1 } from "@/lib/api/v1";
 
 interface ImportResult {
@@ -46,9 +47,10 @@ export function AsistenciasImportView() {
     formData.append("file", file);
 
     try {
-      const res = await fetch(v1("/permisos/importar-asistencias"), {
+      const token = localStorage.getItem("urrea_token");
+      const res = await fetch(`${API_URL}${v1("/permisos/importar-asistencias")}`, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+        headers: { "Authorization": `Bearer ${token}` },
         body: formData
       });
 

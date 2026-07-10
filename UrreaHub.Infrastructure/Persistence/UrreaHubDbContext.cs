@@ -77,6 +77,7 @@ public class UrreaHubDbContext : DbContext
     public DbSet<AsignacionTurno> AsignacionesTurno => Set<AsignacionTurno>();
     public DbSet<ReglasAsistencia> ReglasAsistencia => Set<ReglasAsistencia>();
     public DbSet<IncidenciaNominaAsistencia> IncidenciasNominaAsistencia => Set<IncidenciaNominaAsistencia>();
+    public DbSet<SolicitudCambioHorario> SolicitudesCambioHorario => Set<SolicitudCambioHorario>();
 
     // Requisiciones
     public DbSet<RequisicionPersonal> RequisicionesPersonal => Set<RequisicionPersonal>();

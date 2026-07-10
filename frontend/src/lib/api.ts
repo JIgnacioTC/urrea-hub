@@ -1,3 +1,5 @@
+import { clearSession } from "@/lib/auth";
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5018";
 
 export class ApiError extends Error {
@@ -27,6 +29,10 @@ export async function fetchApi<T>(path: string, init?: RequestInit): Promise<T> 
   });
 
   if (!response.ok) {
+    if (response.status === 401 && typeof window !== "undefined" && !path.includes("/auth/login")) {
+      clearSession();
+      window.location.href = "/login";
+    }
     const body = await response.text();
     let message = `API error: ${response.status}`;
     try {
@@ -48,6 +54,12 @@ export async function fetchApiBlob(path: string): Promise<Blob> {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     cache: "no-store",
   });
-  if (!response.ok) throw new ApiError("Error al descargar", response.status);
+  if (!response.ok) {
+    if (response.status === 401 && typeof window !== "undefined" && !path.includes("/auth/login")) {
+      clearSession();
+      window.location.href = "/login";
+    }
+    throw new ApiError("Error al descargar", response.status);
+  }
   return response.blob();
 }

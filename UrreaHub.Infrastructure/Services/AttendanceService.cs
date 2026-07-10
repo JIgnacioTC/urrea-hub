@@ -504,4 +504,209 @@ public class AttendanceService : IAttendanceService
             r.Fuente.ToString(), r.TipoRegistro, r.Estado.ToString(),
             horas, r.Observaciones);
     }
+
+    public async Task<IReadOnlyList<TurnoDto>> GetAvailableShiftsAsync(CancellationToken cancellationToken = default)
+    {
+        var turnos = await _context.Turnos.AsNoTracking()
+            .Where(t => t.IsActive)
+            .OrderBy(t => t.Nombre)
+            .ToListAsync(cancellationToken);
+
+        return turnos.Select(t => new TurnoDto(
+            t.Id, t.Codigo, t.Nombre, t.HoraEntrada, t.HoraSalida, t.MinutosToleranciaEntrada, t.MinutosComida, t.IsActive
+        )).ToList();
+    }
+
+    public async Task<IReadOnlyList<AsignacionTurnoDto>> GetMyShiftHistoryAsync(Guid colaboradorId, CancellationToken cancellationToken = default)
+    {
+        var asignaciones = await _context.AsignacionesTurno.AsNoTracking()
+            .Include(a => a.Turno)
+            .Include(a => a.Colaborador)
+            .Where(a => a.ColaboradorId == colaboradorId && a.IsActive)
+            .OrderByDescending(a => a.FechaInicio)
+            .ToListAsync(cancellationToken);
+
+        return asignaciones.Select(a => new AsignacionTurnoDto(
+            a.Id,
+            a.ColaboradorId,
+            $"{a.Colaborador.Nombre} {a.Colaborador.ApellidoPaterno}",
+            a.TurnoId,
+            a.Turno.Nombre,
+            a.FechaInicio,
+            a.FechaFin,
+            a.Origen
+        )).ToList();
+    }
+
+    public async Task<Result<SolicitudCambioHorarioDto>> CreateShiftChangeRequestAsync(Guid colaboradorId, CrearSolicitudCambioHorarioDto dto, CancellationToken cancellationToken = default)
+    {
+        var col = await _context.Colaboradores.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == colaboradorId && c.IsActive, cancellationToken);
+        if (col == null) return Result<SolicitudCambioHorarioDto>.Fail("Colaborador no encontrado.");
+
+        var turnoSolicitado = await _context.Turnos.AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == dto.TurnoSolicitadoId && t.IsActive, cancellationToken);
+        if (turnoSolicitado == null) return Result<SolicitudCambioHorarioDto>.Fail("Turno solicitado no encontrado o inactivo.");
+
+        var activeShift = await GetTurnoAsync(colaboradorId, DateTime.UtcNow.Date, cancellationToken);
+        if (activeShift == null)
+            return Result<SolicitudCambioHorarioDto>.Fail("No tienes un turno actualmente asignado.");
+
+        if (activeShift.Id == turnoSolicitado.Id)
+            return Result<SolicitudCambioHorarioDto>.Fail("El turno solicitado es el mismo que el actual.");
+
+        var hasPending = await _context.SolicitudesCambioHorario.AnyAsync(s =>
+            s.ColaboradorId == colaboradorId && s.Estado == "Pendiente" && s.IsActive, cancellationToken);
+        if (hasPending)
+            return Result<SolicitudCambioHorarioDto>.Fail("Ya tienes una solicitud de cambio de horario pendiente.");
+
+        var request = new SolicitudCambioHorario
+        {
+            Id = Guid.NewGuid(),
+            ColaboradorId = colaboradorId,
+            TurnoActualId = activeShift.Id,
+            TurnoSolicitadoId = turnoSolicitado.Id,
+            Motivo = dto.Motivo.Trim(),
+            Estado = "Pendiente",
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
+        };
+
+        _context.SolicitudesCambioHorario.Add(request);
+        await _context.SaveChangesAsync(cancellationToken);
+        await _audit.LogEventoAsync("Asistencia", "SolicitudCambioHorarioCreada", "SolicitudCambioHorario", request.Id, colaboradorId.ToString(), dto.Motivo, cancellationToken);
+
+        return Result<SolicitudCambioHorarioDto>.Ok(await MapSolicitudAsync(request.Id, cancellationToken));
+    }
+
+    public async Task<IReadOnlyList<SolicitudCambioHorarioDto>> GetMyShiftChangeRequestsAsync(Guid colaboradorId, CancellationToken cancellationToken = default)
+    {
+        var ids = await _context.SolicitudesCambioHorario.AsNoTracking()
+            .Where(s => s.ColaboradorId == colaboradorId && s.IsActive)
+            .OrderByDescending(s => s.CreatedAt)
+            .Select(s => s.Id)
+            .ToListAsync(cancellationToken);
+
+        var result = new List<SolicitudCambioHorarioDto>();
+        foreach (var id in ids)
+            result.Add(await MapSolicitudAsync(id, cancellationToken));
+        return result;
+    }
+
+    public async Task<IReadOnlyList<SolicitudCambioHorarioDto>> GetPendingShiftChangeRequestsAsync(Guid jefeId, CancellationToken cancellationToken = default)
+    {
+        var subIds = await _context.Colaboradores.AsNoTracking()
+            .Where(c => c.JefeDirectoId == jefeId && c.IsActive)
+            .Select(c => c.Id)
+            .ToListAsync(cancellationToken);
+
+        var ids = await _context.SolicitudesCambioHorario.AsNoTracking()
+            .Where(s => subIds.Contains(s.ColaboradorId) && s.Estado == "Pendiente" && s.IsActive)
+            .OrderBy(s => s.CreatedAt)
+            .Select(s => s.Id)
+            .ToListAsync(cancellationToken);
+
+        var result = new List<SolicitudCambioHorarioDto>();
+        foreach (var id in ids)
+            result.Add(await MapSolicitudAsync(id, cancellationToken));
+        return result;
+    }
+
+    public async Task<Result<SolicitudCambioHorarioDto>> ApproveShiftChangeRequestAsync(Guid aprobadorId, Guid requestId, DecisionCambioHorarioDto dto, bool isRhAdmin, CancellationToken cancellationToken = default)
+    {
+        var request = await _context.SolicitudesCambioHorario
+            .Include(s => s.Colaborador)
+            .FirstOrDefaultAsync(s => s.Id == requestId && s.IsActive, cancellationToken);
+
+        if (request == null) return Result<SolicitudCambioHorarioDto>.Fail("Solicitud no encontrada.");
+        if (request.Estado != "Pendiente") return Result<SolicitudCambioHorarioDto>.Fail("La solicitud no está pendiente.");
+
+        if (!isRhAdmin && request.Colaborador.JefeDirectoId != aprobadorId)
+            return Result<SolicitudCambioHorarioDto>.Fail("No autorizado para aprobar esta solicitud.");
+
+        request.Estado = "Aprobado";
+        request.AprobadorId = aprobadorId;
+        request.FechaDecision = DateTime.UtcNow;
+        request.ComentarioAprobador = dto.Comentario;
+        request.UpdatedAt = DateTime.UtcNow;
+
+        var today = DateTime.UtcNow.Date;
+        
+        var activeAssignments = await _context.AsignacionesTurno
+            .Where(a => a.ColaboradorId == request.ColaboradorId && a.IsActive && a.FechaFin == null)
+            .ToListAsync(cancellationToken);
+
+        foreach (var a in activeAssignments)
+        {
+            a.FechaFin = today.AddDays(-1);
+            a.UpdatedAt = DateTime.UtcNow;
+        }
+
+        var newAssignment = new AsignacionTurno
+        {
+            Id = Guid.NewGuid(),
+            ColaboradorId = request.ColaboradorId,
+            TurnoId = request.TurnoSolicitadoId,
+            FechaInicio = today,
+            Origen = "CambioAprobado",
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
+        };
+        _context.AsignacionesTurno.Add(newAssignment);
+
+        await _context.SaveChangesAsync(cancellationToken);
+        await _audit.LogCambioEstadoAsync("SolicitudCambioHorario", request.Id, "Pendiente", "Aprobado", aprobadorId.ToString(), dto.Comentario, cancellationToken);
+
+        return Result<SolicitudCambioHorarioDto>.Ok(await MapSolicitudAsync(requestId, cancellationToken));
+    }
+
+    public async Task<Result<SolicitudCambioHorarioDto>> RejectShiftChangeRequestAsync(Guid aprobadorId, Guid requestId, DecisionCambioHorarioDto dto, bool isRhAdmin, CancellationToken cancellationToken = default)
+    {
+        var request = await _context.SolicitudesCambioHorario
+            .Include(s => s.Colaborador)
+            .FirstOrDefaultAsync(s => s.Id == requestId && s.IsActive, cancellationToken);
+
+        if (request == null) return Result<SolicitudCambioHorarioDto>.Fail("Solicitud no encontrada.");
+        if (request.Estado != "Pendiente") return Result<SolicitudCambioHorarioDto>.Fail("La solicitud no está pendiente.");
+
+        if (!isRhAdmin && request.Colaborador.JefeDirectoId != aprobadorId)
+            return Result<SolicitudCambioHorarioDto>.Fail("No autorizado para rechazar esta solicitud.");
+
+        request.Estado = "Rechazado";
+        request.AprobadorId = aprobadorId;
+        request.FechaDecision = DateTime.UtcNow;
+        request.ComentarioAprobador = dto.Comentario;
+        request.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        await _audit.LogCambioEstadoAsync("SolicitudCambioHorario", request.Id, "Pendiente", "Rechazado", aprobadorId.ToString(), dto.Comentario, cancellationToken);
+
+        return Result<SolicitudCambioHorarioDto>.Ok(await MapSolicitudAsync(requestId, cancellationToken));
+    }
+
+    private async Task<SolicitudCambioHorarioDto> MapSolicitudAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var s = await _context.SolicitudesCambioHorario.AsNoTracking()
+            .Include(x => x.Colaborador)
+            .Include(x => x.TurnoActual)
+            .Include(x => x.TurnoSolicitado)
+            .Include(x => x.Aprobador)
+            .FirstAsync(x => x.Id == id, cancellationToken);
+
+        return new SolicitudCambioHorarioDto(
+            s.Id,
+            s.ColaboradorId,
+            $"{s.Colaborador.Nombre} {s.Colaborador.ApellidoPaterno}",
+            s.TurnoActualId,
+            s.TurnoActual.Nombre,
+            s.TurnoSolicitadoId,
+            s.TurnoActual.Nombre == s.TurnoSolicitado.Nombre ? s.TurnoSolicitado.Nombre + " (Nuevo)" : s.TurnoSolicitado.Nombre,
+            s.Motivo,
+            s.Estado,
+            s.ComentarioAprobador,
+            s.AprobadorId,
+            s.Aprobador != null ? $"{s.Aprobador.Nombre} {s.Aprobador.ApellidoPaterno}" : null,
+            s.FechaDecision,
+            s.CreatedAt);
+    }
 }

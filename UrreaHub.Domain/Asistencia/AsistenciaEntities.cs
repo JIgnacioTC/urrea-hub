@@ -136,3 +136,22 @@ public class IncidenciaNominaAsistencia : BaseEntity
     public string? ErrorNomina { get; set; }
     public string? ValidadoPor { get; set; }
 }
+
+public class SolicitudCambioHorario : BaseEntity
+{
+    public Guid ColaboradorId { get; set; }
+    public Colaborador Colaborador { get; set; } = null!;
+
+    public Guid TurnoActualId { get; set; }
+    public Turno TurnoActual { get; set; } = null!;
+
+    public Guid TurnoSolicitadoId { get; set; }
+    public Turno TurnoSolicitado { get; set; } = null!;
+
+    public string Motivo { get; set; } = string.Empty;
+    public string Estado { get; set; } = "Pendiente"; // "Pendiente", "Aprobado", "Rechazado"
+    public string? ComentarioAprobador { get; set; }
+    public Guid? AprobadorId { get; set; }
+    public Colaborador? Aprobador { get; set; }
+    public DateTime? FechaDecision { get; set; }
+}

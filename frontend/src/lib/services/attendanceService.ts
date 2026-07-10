@@ -67,4 +67,63 @@ export const attendanceService = {
       method: "POST",
       body: JSON.stringify({ comentario: comentario ?? null }),
     }),
+
+  getMyShifts: () => fetchApi<AsignacionTurno[]>(v1("/attendance/my-shifts")),
+  getAvailableShifts: () => fetchApi<Turno[]>(v1("/attendance/available-shifts")),
+  createShiftRequest: (body: { turnoSolicitadoId: string; motivo: string }) =>
+    fetchApi<SolicitudCambioHorario>(v1("/attendance/shift-change-requests"), {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  getMyShiftRequests: () => fetchApi<SolicitudCambioHorario[]>(v1("/attendance/shift-change-requests/my")),
+  getPendingShiftRequests: () => fetchApi<SolicitudCambioHorario[]>(v1("/attendance/shift-change-requests/pending")),
+  approveShiftRequest: (id: string, comentario?: string) =>
+    fetchApi<SolicitudCambioHorario>(v1(`/attendance/shift-change-requests/${id}/approve`), {
+      method: "POST",
+      body: JSON.stringify({ comentario: comentario ?? null }),
+    }),
+  rejectShiftRequest: (id: string, comentario?: string) =>
+    fetchApi<SolicitudCambioHorario>(v1(`/attendance/shift-change-requests/${id}/reject`), {
+      method: "POST",
+      body: JSON.stringify({ comentario: comentario ?? null }),
+    }),
 };
+
+export interface Turno {
+  id: string;
+  codigo: string;
+  nombre: string;
+  horaEntrada: string;
+  horaSalida: string;
+  minutosToleranciaEntrada: number;
+  minutosComida: number;
+  isActive: boolean;
+}
+
+export interface AsignacionTurno {
+  id: string;
+  colaboradorId: string;
+  colaboradorNombre: string;
+  turnoId: string;
+  turnoNombre: string;
+  fechaInicio: string;
+  fechaFin?: string;
+  origen: string;
+}
+
+export interface SolicitudCambioHorario {
+  id: string;
+  colaboradorId: string;
+  colaboradorNombre: string;
+  turnoActualId: string;
+  turnoActualNombre: string;
+  turnoSolicitadoId: string;
+  turnoSolicitadoNombre: string;
+  motivo: string;
+  estado: string;
+  comentarioAprobador?: string;
+  aprobadorId?: string;
+  aprobadorNombre?: string;
+  fechaDecision?: string;
+  createdAt: string;
+}

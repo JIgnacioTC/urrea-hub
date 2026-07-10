@@ -108,6 +108,46 @@ public class AttendanceController : ControllerBase
         var result = await _attendance.CheckOutAsync(_currentUser.ColaboradorId, dto, ct);
         return result.Success ? Ok(result.Data) : BadRequest(new { error = result.Error });
     }
+
+    [HttpGet("available-shifts")]
+    public Task<IReadOnlyList<TurnoDto>> AvailableShifts(CancellationToken ct)
+        => _attendance.GetAvailableShiftsAsync(ct);
+
+    [HttpGet("my-shifts")]
+    public Task<IReadOnlyList<AsignacionTurnoDto>> MyShifts(CancellationToken ct)
+        => _attendance.GetMyShiftHistoryAsync(_currentUser.ColaboradorId, ct);
+
+    [HttpPost("shift-change-requests")]
+    public async Task<ActionResult<SolicitudCambioHorarioDto>> CreateShiftChangeRequest([FromBody] CrearSolicitudCambioHorarioDto dto, CancellationToken ct)
+    {
+        var result = await _attendance.CreateShiftChangeRequestAsync(_currentUser.ColaboradorId, dto, ct);
+        return result.Success ? Ok(result.Data) : BadRequest(new { error = result.Error });
+    }
+
+    [HttpGet("shift-change-requests/my")]
+    public Task<IReadOnlyList<SolicitudCambioHorarioDto>> MyShiftChangeRequests(CancellationToken ct)
+        => _attendance.GetMyShiftChangeRequestsAsync(_currentUser.ColaboradorId, ct);
+
+    [HttpGet("shift-change-requests/pending")]
+    [Authorize(Policy = "ManagerApproval")]
+    public Task<IReadOnlyList<SolicitudCambioHorarioDto>> PendingShiftChangeRequests(CancellationToken ct)
+        => _attendance.GetPendingShiftChangeRequestsAsync(_currentUser.ColaboradorId, ct);
+
+    [HttpPost("shift-change-requests/{id:guid}/approve")]
+    [Authorize(Policy = "ManagerApproval")]
+    public async Task<ActionResult<SolicitudCambioHorarioDto>> ApproveShiftChangeRequest(Guid id, [FromBody] DecisionCambioHorarioDto dto, CancellationToken ct)
+    {
+        var result = await _attendance.ApproveShiftChangeRequestAsync(_currentUser.ColaboradorId, id, dto, _currentUser.IsRhAdmin, ct);
+        return result.Success ? Ok(result.Data) : BadRequest(new { error = result.Error });
+    }
+
+    [HttpPost("shift-change-requests/{id:guid}/reject")]
+    [Authorize(Policy = "ManagerApproval")]
+    public async Task<ActionResult<SolicitudCambioHorarioDto>> RejectShiftChangeRequest(Guid id, [FromBody] DecisionCambioHorarioDto dto, CancellationToken ct)
+    {
+        var result = await _attendance.RejectShiftChangeRequestAsync(_currentUser.ColaboradorId, id, dto, _currentUser.IsRhAdmin, ct);
+        return result.Success ? Ok(result.Data) : BadRequest(new { error = result.Error });
+    }
 }
 
 [ApiController]

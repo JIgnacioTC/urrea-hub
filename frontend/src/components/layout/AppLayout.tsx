@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { DhIcon } from "@/components/dh/shared/icons";
 import { UnifiedSidebar } from "@/components/layout/UnifiedSidebar";
+import { SidebarProvider } from "@/components/layout/SidebarContext";
 import { avatarGradient, getInitials } from "@/components/portal/profile-helpers";
 import { clearSession, isRhAdmin, isTiAdmin, type Session } from "@/lib/auth";
 import { PortalMobileMenu, MenuIcon } from "@/components/portal/PortalMobileMenu";
@@ -181,42 +182,44 @@ export function AppLayout({
   const currentNavItem = getNavItemByPath(pathname, sections);
 
   return (
-    <div className="flex h-[100dvh] bg-slate-50">
-      <UnifiedSidebar
-        session={session}
-        perfil={perfil}
-        sections={sections}
-        pathname={pathname}
-        onLogout={handleLogout}
-        currentWorkspace={workspace}
-        onWorkspaceChange={handleWorkspaceChange}
-      />
+    <SidebarProvider>
+      <div className="flex h-[100dvh] bg-slate-50">
+        <UnifiedSidebar
+          session={session}
+          perfil={perfil}
+          sections={sections}
+          pathname={pathname}
+          onLogout={handleLogout}
+          currentWorkspace={workspace}
+          onWorkspaceChange={handleWorkspaceChange}
+        />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <MobileHeader session={session} perfil={perfil} current={currentNavItem} />
-        <DesktopHeader session={session} perfil={perfil} current={currentNavItem} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <MobileHeader session={session} perfil={perfil} current={currentNavItem} />
+          <DesktopHeader session={session} perfil={perfil} current={currentNavItem} />
 
-        <main className="main-with-mobile-nav flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-7xl p-4 lg:p-8">
-            {children}
-          </div>
-        </main>
+          <main className="main-with-mobile-nav flex-1 overflow-y-auto">
+            <div className="mx-auto w-full max-w-7xl p-4 lg:p-8">
+              {children}
+            </div>
+          </main>
+        </div>
+
+        <MobileBottomNav
+          links={mobileNavLinks}
+          pathname={pathname}
+          onOpenMenu={() => setMenuOpen(true)}
+          menuOpen={menuOpen}
+        />
+
+        <PortalMobileMenu
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          sections={sections}
+          pathname={pathname}
+          onLogout={handleLogout}
+        />
       </div>
-
-      <MobileBottomNav
-        links={mobileNavLinks}
-        pathname={pathname}
-        onOpenMenu={() => setMenuOpen(true)}
-        menuOpen={menuOpen}
-      />
-
-      <PortalMobileMenu
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        sections={sections}
-        pathname={pathname}
-        onLogout={handleLogout}
-      />
-    </div>
+    </SidebarProvider>
   );
 }

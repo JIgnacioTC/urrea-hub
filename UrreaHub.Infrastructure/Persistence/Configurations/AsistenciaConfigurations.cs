@@ -11,7 +11,8 @@ public class AsistenciaConfigurations :
     IEntityTypeConfiguration<Turno>,
     IEntityTypeConfiguration<AsignacionTurno>,
     IEntityTypeConfiguration<ReglasAsistencia>,
-    IEntityTypeConfiguration<IncidenciaNominaAsistencia>
+    IEntityTypeConfiguration<IncidenciaNominaAsistencia>,
+    IEntityTypeConfiguration<SolicitudCambioHorario>
 {
     public void Configure(EntityTypeBuilder<RegistroAsistencia> builder)
     {
@@ -39,4 +40,19 @@ public class AsistenciaConfigurations :
 
     public void Configure(EntityTypeBuilder<IncidenciaNominaAsistencia> builder) =>
         builder.ToTable("IncidenciasNomina", "Asistencia");
+
+    public void Configure(EntityTypeBuilder<SolicitudCambioHorario> builder)
+    {
+        builder.ToTable("SolicitudesCambioHorario", "Asistencia");
+        
+        builder.HasOne(s => s.TurnoActual)
+            .WithMany()
+            .HasForeignKey(s => s.TurnoActualId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(s => s.TurnoSolicitado)
+            .WithMany()
+            .HasForeignKey(s => s.TurnoSolicitadoId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
 }

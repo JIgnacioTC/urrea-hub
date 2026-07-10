@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { fetchApi } from "@/lib/api";
 import { v1 } from "@/lib/api/v1";
 
 interface TipoPermiso {
@@ -31,21 +32,14 @@ export function ConfiguracionPermisosView() {
   const fetchData = async () => {
     try {
       // Usamos el endpoint existente de tipos de permiso
-      const resTipos = await fetch(v1("/vacaciones/tipos-ausencia"), {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
-      });
-      // Fetch areas for routing (assuming there is an endpoint like /core-rh/areas or /catalogs/areas)
-      const resAreas = await fetch(v1("/core-rh/areas"), {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
-      });
-      
-      if (!resTipos.ok) throw new Error("Error al cargar los tipos de permisos");
-      const dataTipos = await resTipos.json();
+      const dataTipos = await fetchApi<TipoPermiso[]>(v1("/vacaciones/tipos-ausencia"));
       setTipos(dataTipos);
 
-      if (resAreas.ok) {
-        const dataAreas = await resAreas.json();
+      try {
+        const dataAreas = await fetchApi<Area[]>(v1("/core-rh/areas"));
         setAreas(dataAreas);
+      } catch (areaErr) {
+        console.error("Error fetching areas:", areaErr);
       }
     } catch (err: any) {
       setError(err.message);
@@ -64,19 +58,13 @@ export function ConfiguracionPermisosView() {
 
   const handleSave = async (id: string) => {
     try {
-      const res = await fetch(v1(`/permisos/configuracion/${id}`), {
+      await fetchApi(v1(`/permisos/configuracion/${id}`), {
         method: "PUT",
-        headers: { 
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json"
-        },
         body: JSON.stringify({
           webhookUrl: editForm.webhookUrl || null,
           areaDestinoId: editForm.areaDestinoId || null
         })
       });
-      
-      if (!res.ok) throw new Error("Error al guardar la configuración");
       
       setTipos(tipos.map(t => t.id === id ? { ...t, webhookUrl: editForm.webhookUrl, areaDestinoId: editForm.areaDestinoId } : t));
       setEditingId(null);

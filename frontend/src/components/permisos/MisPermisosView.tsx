@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { fetchApi } from "@/lib/api";
 import { v1 } from "@/lib/api/v1";
 
 interface Permiso {
@@ -29,11 +30,7 @@ export function MisPermisosView() {
 
   const fetchMisPermisos = async () => {
     try {
-      const res = await fetch(v1("/permisos/mis-casos"), {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
-      });
-      if (!res.ok) throw new Error("Error al cargar los permisos");
-      const data = await res.json();
+      const data = await fetchApi<Permiso[]>(v1("/permisos/mis-casos"));
       setPermisos(data);
     } catch (err: any) {
       setError(err.message);
