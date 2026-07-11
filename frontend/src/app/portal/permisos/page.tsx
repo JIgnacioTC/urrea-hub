@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import { MisPermisosView } from "@/components/permisos/MisPermisosView";
+import { redirect } from "next/navigation";
 
 export default function PermisosPage() {
-  return (
-    <Suspense fallback={<div className="px-4 py-8 text-sm text-gray-500">Cargando...</div>}>
-      <MisPermisosView />
-    </Suspense>
-  );
+  redirect("/portal/vacaciones");
 }

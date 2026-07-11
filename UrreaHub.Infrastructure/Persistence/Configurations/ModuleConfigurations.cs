@@ -197,13 +197,27 @@ public class BeneficiosConfigurations :
 
 public class PortalConfigurations :
     IEntityTypeConfiguration<PublicacionPortal>,
-    IEntityTypeConfiguration<ContenidoModuloPortal>
+    IEntityTypeConfiguration<ContenidoModuloPortal>,
+    IEntityTypeConfiguration<ReaccionPublicacion>,
+    IEntityTypeConfiguration<ComentarioPublicacion>
 {
     public void Configure(EntityTypeBuilder<PublicacionPortal> builder) => builder.ToTable("Publicaciones", "Portal");
     public void Configure(EntityTypeBuilder<ContenidoModuloPortal> builder)
     {
         builder.ToTable("ContenidosModulo", "Portal");
         builder.HasIndex(c => c.CodigoModulo).IsUnique();
+    }
+
+    public void Configure(EntityTypeBuilder<ReaccionPublicacion> builder)
+    {
+        builder.ToTable("Reacciones", "Portal");
+        builder.HasIndex(r => new { r.PublicacionId, r.ColaboradorId }).IsUnique();
+    }
+
+    public void Configure(EntityTypeBuilder<ComentarioPublicacion> builder)
+    {
+        builder.ToTable("Comentarios", "Portal");
+        builder.HasIndex(c => c.PublicacionId);
     }
 }
 

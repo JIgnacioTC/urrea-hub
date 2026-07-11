@@ -13,6 +13,13 @@ public enum EstadoSolicitud
     ConvertidaVacante,
 }
 
+public enum NivelAprobacionAusencia
+{
+    Jefe,
+    DH,
+    Nominas,
+}
+
 public enum NivelConfidencialidad
 {
     Publico,

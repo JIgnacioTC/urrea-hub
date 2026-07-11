@@ -31,7 +31,19 @@ public record TipoAusenciaDto(
     string? Descripcion,
     string? Icono,
     int Orden,
-    bool PermiteSolicitudEmpleado);
+    bool PermiteSolicitudEmpleado,
+    bool RequiereAprobacionJefe,
+    bool RequiereAprobacionDH,
+    bool RequiereAprobacionNominas);
+
+public record PasoAprobacionDto(
+    int Orden,
+    NivelAprobacionAusencia Nivel,
+    string NivelLabel,
+    EstadoSolicitud Estado,
+    string? AprobadorNombre,
+    string? Comentario,
+    DateTime? FechaDecision);
 
 public record ResumenTipoPermisoDto(
     Guid TipoAusenciaId,
@@ -57,7 +69,8 @@ public record SolicitudAusenciaDto(
     DateTime CreatedAt,
     bool EsDiaCompleto,
     string? HoraInicio,
-    string? HoraFin);
+    string? HoraFin,
+    IReadOnlyList<PasoAprobacionDto> PasosAprobacion);
 
 public record SaldoVacacionesDto(
     int Anio,
@@ -95,7 +108,9 @@ public record PendingApprovalDto(
     DateTime CreatedAt,
     decimal? SaldoDisponible,
     decimal? SaldoPosterior,
-    IReadOnlyList<string> TraslapesEquipo);
+    IReadOnlyList<string> TraslapesEquipo,
+    NivelAprobacionAusencia NivelActual,
+    IReadOnlyList<PasoAprobacionDto> PasosAprobacion);
 
 public record TeamCalendarDto(
     DateTime Desde,
@@ -145,11 +160,11 @@ public interface ISolicitudAusenciaService
     Task<Result<SolicitudAusenciaDto>> CrearAsync(Guid colaboradorId, CrearSolicitudDto dto, CancellationToken cancellationToken = default);
     Task<Result<SolicitudAusenciaDto>> EnviarAsync(Guid colaboradorId, Guid solicitudId, CancellationToken cancellationToken = default);
     Task<Result<SolicitudAusenciaDto>> CancelarAsync(Guid colaboradorId, Guid solicitudId, CancellationToken cancellationToken = default);
-    Task<Result<SolicitudAusenciaDto>> AprobarAsync(Guid aprobadorId, Guid solicitudId, AprobacionRequestDto dto, bool isRhAdmin, CancellationToken cancellationToken = default);
-    Task<Result<SolicitudAusenciaDto>> RechazarAsync(Guid aprobadorId, Guid solicitudId, AprobacionRequestDto dto, bool isRhAdmin, CancellationToken cancellationToken = default);
+    Task<Result<SolicitudAusenciaDto>> AprobarAsync(Guid aprobadorId, Guid solicitudId, AprobacionRequestDto dto, bool isRhAdmin, bool isNominaAdmin, CancellationToken cancellationToken = default);
+    Task<Result<SolicitudAusenciaDto>> RechazarAsync(Guid aprobadorId, Guid solicitudId, AprobacionRequestDto dto, bool isRhAdmin, bool isNominaAdmin, CancellationToken cancellationToken = default);
     Task<SolicitudAusenciaDto?> GetByIdAsync(Guid solicitudId, Guid? viewerColaboradorId, bool isRhAdmin, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SolicitudAusenciaDto>> GetMisSolicitudesAsync(Guid colaboradorId, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<PendingApprovalDto>> GetPendientesAprobacionAsync(Guid jefeId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PendingApprovalDto>> GetPendientesAprobacionAsync(Guid aprobadorId, bool isRhAdmin, bool isNominaAdmin, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<CalendarioAusenciaDto>> GetCalendarioAusenciasAsync(Guid colaboradorId, DateTime desde, DateTime hasta, CancellationToken cancellationToken = default);
     Task<TeamCalendarDto> GetTeamCalendarAsync(Guid colaboradorId, DateTime desde, DateTime hasta, CancellationToken cancellationToken = default);
     Task<CalculateDaysResultDto> PreviewDaysAsync(Guid colaboradorId, CalculateDaysDto dto, CancellationToken cancellationToken = default);

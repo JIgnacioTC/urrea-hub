@@ -33,12 +33,159 @@ public class PortalContentService : IPortalContentService
         _environment = environment;
     }
 
-    public async Task<IReadOnlyList<FeedPostDto>> GetFeedAsync(CancellationToken cancellationToken = default)
-        => await _context.PublicacionesPortal.AsNoTracking()
+    public async Task<IReadOnlyList<FeedPostDto>> GetFeedAsync(Guid colaboradorId, CancellationToken cancellationToken = default)
+    {
+        var posts = await _context.PublicacionesPortal.AsNoTracking()
             .Where(p => p.IsActive)
             .OrderByDescending(p => p.FechaPublicacion)
-            .Select(p => MapFeed(p))
             .ToListAsync(cancellationToken);
+
+        var postIds = posts.Select(p => p.Id).ToList();
+        var likedIds = (await _context.ReaccionesPublicacion.AsNoTracking()
+            .Where(r => r.ColaboradorId == colaboradorId && postIds.Contains(r.PublicacionId))
+            .Select(r => r.PublicacionId)
+            .ToListAsync(cancellationToken))
+            .ToHashSet();
+
+        return posts.Select(p => MapFeed(p, colaboradorId, likedIds.Contains(p.Id))).ToList();
+    }
+
+    public async Task<Result<FeedPostDto>> CrearPublicacionAsync(Guid colaboradorId, CrearPublicacionDto dto, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Contenido))
+            return Result<FeedPostDto>.Fail("El contenido no puede estar vacío.");
+
+        var colaborador = await _context.Colaboradores.AsNoTracking()
+            .Include(c => c.Puesto)
+            .Include(c => c.Departamento)
+            .FirstOrDefaultAsync(c => c.Id == colaboradorId, cancellationToken);
+        if (colaborador is null)
+            return Result<FeedPostDto>.Fail("Colaborador no encontrado.");
+
+        var now = DateTime.UtcNow;
+        var entity = new PublicacionPortal
+        {
+            Id = Guid.NewGuid(),
+            AutorNombre = $"{colaborador.Nombre} {colaborador.ApellidoPaterno}".Trim(),
+            AutorRol = colaborador.Puesto?.Nombre ?? "",
+            AutorIniciales = BuildInitials(colaborador.Nombre, colaborador.ApellidoPaterno),
+            Departamento = colaborador.Departamento?.Nombre ?? "",
+            Contenido = dto.Contenido.Trim(),
+            GradienteImagen = dto.GradienteImagen,
+            Likes = 0,
+            Comentarios = 0,
+            Compartidos = 0,
+            FechaPublicacion = now,
+            Tipo = dto.Tipo,
+            ColaboradorId = colaboradorId,
+            CreatedAt = now,
+            IsActive = true,
+        };
+        _context.PublicacionesPortal.Add(entity);
+        await _context.SaveChangesAsync(cancellationToken);
+        return Result<FeedPostDto>.Ok(MapFeed(entity, colaboradorId, likedByMe: false));
+    }
+
+    public async Task<Result<bool>> EliminarPublicacionPropiaAsync(Guid colaboradorId, Guid publicacionId, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.PublicacionesPortal
+            .FirstOrDefaultAsync(p => p.Id == publicacionId && p.IsActive, cancellationToken);
+        if (entity is null)
+            return Result<bool>.Fail("Publicación no encontrada.");
+        if (entity.ColaboradorId != colaboradorId)
+            return Result<bool>.Fail("No puedes eliminar publicaciones de otros colaboradores.");
+
+        entity.IsActive = false;
+        await _context.SaveChangesAsync(cancellationToken);
+        return Result<bool>.Ok(true);
+    }
+
+    public async Task<Result<ToggleReaccionResultDto>> ToggleReaccionAsync(Guid colaboradorId, Guid publicacionId, CancellationToken cancellationToken = default)
+    {
+        var publicacion = await _context.PublicacionesPortal
+            .FirstOrDefaultAsync(p => p.Id == publicacionId && p.IsActive, cancellationToken);
+        if (publicacion is null)
+            return Result<ToggleReaccionResultDto>.Fail("Publicación no encontrada.");
+
+        var reaccion = await _context.ReaccionesPublicacion
+            .FirstOrDefaultAsync(r => r.PublicacionId == publicacionId && r.ColaboradorId == colaboradorId, cancellationToken);
+
+        bool nowLiked;
+        if (reaccion is null)
+        {
+            _context.ReaccionesPublicacion.Add(new ReaccionPublicacion
+            {
+                Id = Guid.NewGuid(),
+                PublicacionId = publicacionId,
+                ColaboradorId = colaboradorId,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+            });
+            publicacion.Likes += 1;
+            nowLiked = true;
+        }
+        else
+        {
+            _context.ReaccionesPublicacion.Remove(reaccion);
+            publicacion.Likes = Math.Max(0, publicacion.Likes - 1);
+            nowLiked = false;
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return Result<ToggleReaccionResultDto>.Ok(new ToggleReaccionResultDto(nowLiked, publicacion.Likes));
+    }
+
+    public async Task<Result<IReadOnlyList<ComentarioDto>>> GetComentariosAsync(Guid colaboradorId, Guid publicacionId, CancellationToken cancellationToken = default)
+    {
+        var existe = await _context.PublicacionesPortal.AsNoTracking()
+            .AnyAsync(p => p.Id == publicacionId && p.IsActive, cancellationToken);
+        if (!existe)
+            return Result<IReadOnlyList<ComentarioDto>>.Fail("Publicación no encontrada.");
+
+        var comentarios = await _context.ComentariosPublicacion.AsNoTracking()
+            .Where(c => c.PublicacionId == publicacionId && c.IsActive)
+            .Include(c => c.Colaborador)
+            .OrderBy(c => c.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        var dtos = comentarios.Select(c => MapComentario(c, colaboradorId)).ToList();
+        return Result<IReadOnlyList<ComentarioDto>>.Ok(dtos);
+    }
+
+    public async Task<Result<ComentarioDto>> CrearComentarioAsync(Guid colaboradorId, Guid publicacionId, CrearComentarioDto dto, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Contenido))
+            return Result<ComentarioDto>.Fail("El comentario no puede estar vacío.");
+
+        var publicacion = await _context.PublicacionesPortal
+            .FirstOrDefaultAsync(p => p.Id == publicacionId && p.IsActive, cancellationToken);
+        if (publicacion is null)
+            return Result<ComentarioDto>.Fail("Publicación no encontrada.");
+
+        var colaborador = await _context.Colaboradores.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == colaboradorId, cancellationToken);
+        if (colaborador is null)
+            return Result<ComentarioDto>.Fail("Colaborador no encontrado.");
+
+        var now = DateTime.UtcNow;
+        var entity = new ComentarioPublicacion
+        {
+            Id = Guid.NewGuid(),
+            PublicacionId = publicacionId,
+            ColaboradorId = colaboradorId,
+            Contenido = dto.Contenido.Trim(),
+            CreatedAt = now,
+            IsActive = true,
+        };
+        _context.ComentariosPublicacion.Add(entity);
+        publicacion.Comentarios += 1;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var authorName = $"{colaborador.Nombre} {colaborador.ApellidoPaterno}".Trim();
+        return Result<ComentarioDto>.Ok(new ComentarioDto(
+            entity.Id, authorName, BuildInitials(colaborador.Nombre, colaborador.ApellidoPaterno),
+            entity.Contenido, entity.CreatedAt, IsOwnComment: true));
+    }
 
     public async Task<BeneficiosCatalogoDto> GetBeneficiosCatalogoAsync(int? anioFestivos, CancellationToken cancellationToken = default)
     {
@@ -141,7 +288,7 @@ public class PortalContentService : IPortalContentService
     }
 
     public async Task<IReadOnlyList<FeedPostDto>> GetAdminPublicacionesAsync(CancellationToken cancellationToken = default)
-        => await GetFeedAsync(cancellationToken);
+        => await GetFeedAsync(Guid.Empty, cancellationToken);
 
     public async Task<FeedPostDto> UpsertPublicacionAsync(Guid? id, UpsertPublicacionDto dto, CancellationToken cancellationToken = default)
     {
@@ -168,7 +315,7 @@ public class PortalContentService : IPortalContentService
         entity.FechaPublicacion = dto.FechaPublicacion;
         entity.Tipo = dto.Tipo;
         await _context.SaveChangesAsync(cancellationToken);
-        return MapFeed(entity);
+        return MapFeed(entity, Guid.Empty, likedByMe: false);
     }
 
     public async Task<bool> DeletePublicacionAsync(Guid id, CancellationToken cancellationToken = default)
@@ -331,7 +478,7 @@ public class PortalContentService : IPortalContentService
         return saldo;
     }
 
-    private static FeedPostDto MapFeed(PublicacionPortal p) => new(
+    private static FeedPostDto MapFeed(PublicacionPortal p, Guid colaboradorId, bool likedByMe) => new(
         p.Id, p.AutorNombre, p.AutorRol, p.AutorIniciales, p.Departamento, p.Contenido,
         p.GradienteImagen, p.Likes, p.Comentarios, p.Compartidos, p.FechaPublicacion,
         p.Tipo switch
@@ -340,7 +487,24 @@ public class PortalContentService : IPortalContentService
             TipoPublicacionPortal.Recognition => "recognition",
             TipoPublicacionPortal.Event => "event",
             _ => "general",
-        });
+        },
+        likedByMe,
+        p.ColaboradorId.HasValue && p.ColaboradorId == colaboradorId);
+
+    private static ComentarioDto MapComentario(ComentarioPublicacion c, Guid colaboradorId) => new(
+        c.Id,
+        $"{c.Colaborador.Nombre} {c.Colaborador.ApellidoPaterno}".Trim(),
+        BuildInitials(c.Colaborador.Nombre, c.Colaborador.ApellidoPaterno),
+        c.Contenido,
+        c.CreatedAt,
+        c.ColaboradorId == colaboradorId);
+
+    private static string BuildInitials(string nombre, string apellidoPaterno)
+    {
+        var a = nombre.Length > 0 ? nombre[..1] : "";
+        var b = apellidoPaterno.Length > 0 ? apellidoPaterno[..1] : "";
+        return (a + b).ToUpperInvariant();
+    }
 
     private static DocumentoCorporativoDto MapDocumento(DocumentoCorporativo d) => new(
         d.Id, d.Codigo, CategoriaToSlug(d.Categoria), d.Titulo, d.Descripcion, d.Icono,

@@ -58,11 +58,9 @@ export const NUCLEO_HCM_SECTION: PortalNavSection = {
 
 const MI_DIA_LINKS: PortalNavLink[] = [
   { href: "/portal/mi-ficha", label: "Mi ficha", shortLabel: "Ficha", icon: "users" },
-  { href: "/portal/asistencia", label: "Mi asistencia", shortLabel: "Asist.", icon: "clock" },
-  { href: "/portal/horarios", label: "Mis Horarios", shortLabel: "Horarios", icon: "clock" },
+  { href: "/portal/asistencia", label: "Asistencia y horarios", shortLabel: "Asist.", icon: "clock" },
   { href: "/portal/checador", label: "Estación Checador", shortLabel: "Checador", icon: "clock" },
   { href: "/portal/vacaciones", label: "Vacaciones y permisos", shortLabel: "Tiempo", icon: "calendar" },
-  { href: "/portal/permisos", label: "Mis Permisos", shortLabel: "Permisos", icon: "calendar" },
   { href: "/portal/onboarding", label: "Mi onboarding", shortLabel: "Onboard.", icon: "onboarding" },
 ];
 

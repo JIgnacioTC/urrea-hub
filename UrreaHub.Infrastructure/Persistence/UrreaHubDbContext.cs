@@ -154,6 +154,8 @@ public class UrreaHubDbContext : DbContext
     // Portal
     public DbSet<PublicacionPortal> PublicacionesPortal => Set<PublicacionPortal>();
     public DbSet<ContenidoModuloPortal> ContenidosModuloPortal => Set<ContenidoModuloPortal>();
+    public DbSet<ReaccionPublicacion> ReaccionesPublicacion => Set<ReaccionPublicacion>();
+    public DbSet<ComentarioPublicacion> ComentariosPublicacion => Set<ComentarioPublicacion>();
 
     public DbSet<MetadatoPlataforma> MetadatosPlataforma => Set<MetadatoPlataforma>();
     public DbSet<ConfiguracionGlobal> ConfiguracionesGlobales => Set<ConfiguracionGlobal>();

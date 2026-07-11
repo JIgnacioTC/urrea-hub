@@ -225,7 +225,7 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
             FechaFin = fechaFin,
             DiasSolicitados = dias,
             Comentario = dto.Comentario,
-            Estado = dto.Enviar ? EstadoSolicitud.Pendiente : EstadoSolicitud.Borrador,
+            Estado = EstadoSolicitud.Borrador,
             EsDiaCompleto = esDiaCompleto,
             HoraInicio = parseInicio,
             HoraFin = parseFin,
@@ -233,21 +233,11 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
             IsActive = true
         };
 
-        if (dto.Enviar)
-        {
-            var validation = await ValidarEnvioAsync(colaboradorId, solicitud, tipo, cancellationToken);
-            if (!validation.Success) return validation;
-        }
-
         _context.SolicitudesAusencia.Add(solicitud);
         await _context.SaveChangesAsync(cancellationToken);
 
         if (dto.Enviar)
-        {
-            await NotificarNuevaSolicitudAsync(solicitud.Id, cancellationToken);
-            if (!string.IsNullOrEmpty(tipo.WebhookUrl))
-                await EjecutarWebhookAsync(solicitud, tipo.WebhookUrl, cancellationToken);
-        }
+            return await EnviarAsync(colaboradorId, solicitud.Id, cancellationToken);
 
         return Result<SolicitudAusenciaDto>.Ok(await MapDtoAsync(solicitud.Id, cancellationToken));
     }
@@ -263,8 +253,46 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
         var validation = await ValidarEnvioAsync(colaboradorId, solicitud, tipo, cancellationToken);
         if (!validation.Success) return validation;
 
+        var now = DateTime.UtcNow;
+
+        if (!tipo.RequiereAprobacion)
+        {
+            // Sin aprobación requerida: se aprueba de inmediato, sin pasos.
+            solicitud.Estado = EstadoSolicitud.Aprobada;
+            solicitud.UpdatedAt = now;
+            if (tipo.DescuentaSaldo)
+                await AplicarSaldoAsync(solicitud, cancellationToken);
+            await CrearIncidenciaNominaAsync(solicitud, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+            await _audit.LogCambioEstadoAsync("SolicitudAusencia", solicitud.Id, "Borrador", "Aprobada", colaboradorId.ToString(), null, cancellationToken);
+            return Result<SolicitudAusenciaDto>.Ok(await MapDtoAsync(solicitud.Id, cancellationToken));
+        }
+
+        var solicitante = await _context.Colaboradores.AsNoTracking().FirstAsync(c => c.Id == colaboradorId, cancellationToken);
+        var niveles = new[] { NivelAprobacionAusencia.Jefe, NivelAprobacionAusencia.DH, NivelAprobacionAusencia.Nominas }
+            .Where(n => RequiereNivel(tipo, n))
+            .ToList();
+        if (niveles.Count == 0)
+            niveles.Add(NivelAprobacionAusencia.Jefe); // resguardo: RequiereAprobacion=true sin niveles configurados
+
+        var orden = 1;
+        foreach (var nivel in niveles)
+        {
+            _context.AprobacionesAusencia.Add(new AprobacionAusencia
+            {
+                Id = Guid.NewGuid(),
+                SolicitudId = solicitud.Id,
+                Nivel = nivel,
+                Orden = orden++,
+                Decision = EstadoSolicitud.Pendiente,
+                AprobadorId = nivel == NivelAprobacionAusencia.Jefe ? solicitante.JefeDirectoId : null,
+                CreatedAt = now,
+                IsActive = true,
+            });
+        }
+
         solicitud.Estado = EstadoSolicitud.Pendiente;
-        solicitud.UpdatedAt = DateTime.UtcNow;
+        solicitud.UpdatedAt = now;
         await _context.SaveChangesAsync(cancellationToken);
         await _audit.LogCambioEstadoAsync("SolicitudAusencia", solicitud.Id, "Borrador", "Pendiente", colaboradorId.ToString(), null, cancellationToken);
         await NotificarNuevaSolicitudAsync(solicitud.Id, cancellationToken);
@@ -274,6 +302,14 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
 
         return Result<SolicitudAusenciaDto>.Ok(await MapDtoAsync(solicitud.Id, cancellationToken));
     }
+
+    private static bool RequiereNivel(TipoAusencia tipo, NivelAprobacionAusencia nivel) => nivel switch
+    {
+        NivelAprobacionAusencia.Jefe => tipo.RequiereAprobacionJefe,
+        NivelAprobacionAusencia.DH => tipo.RequiereAprobacionDH,
+        NivelAprobacionAusencia.Nominas => tipo.RequiereAprobacionNominas,
+        _ => false,
+    };
 
     public async Task<Result<SolicitudAusenciaDto>> CancelarAsync(Guid colaboradorId, Guid solicitudId, CancellationToken cancellationToken = default)
     {
@@ -291,81 +327,102 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
         return Result<SolicitudAusenciaDto>.Ok(await MapDtoAsync(solicitud.Id, cancellationToken));
     }
 
-    public async Task<Result<SolicitudAusenciaDto>> AprobarAsync(Guid aprobadorId, Guid solicitudId, AprobacionRequestDto dto, bool isRhAdmin, CancellationToken cancellationToken = default)
+    public async Task<Result<SolicitudAusenciaDto>> AprobarAsync(Guid aprobadorId, Guid solicitudId, AprobacionRequestDto dto, bool isRhAdmin, bool isNominaAdmin, CancellationToken cancellationToken = default)
     {
         var solicitud = await _context.SolicitudesAusencia
             .Include(s => s.Colaborador)
             .Include(s => s.TipoAusencia)
+            .Include(s => s.Aprobaciones)
             .FirstOrDefaultAsync(s => s.Id == solicitudId && s.IsActive, cancellationToken);
 
         if (solicitud is null) return Result<SolicitudAusenciaDto>.Fail("Solicitud no encontrada.");
         if (solicitud.Estado != EstadoSolicitud.Pendiente)
             return Result<SolicitudAusenciaDto>.Fail("La solicitud no está pendiente.");
 
-        if (!await PuedeAprobarAsync(aprobadorId, solicitud, isRhAdmin, cancellationToken))
+        var paso = GetPasoActual(solicitud);
+        if (paso is null)
+            return Result<SolicitudAusenciaDto>.Fail("No hay un paso de aprobación pendiente.");
+        if (!PuedeDecidirPaso(paso, aprobadorId, isRhAdmin, isNominaAdmin))
             return Result<SolicitudAusenciaDto>.Fail("No autorizado para aprobar esta solicitud.");
 
-        solicitud.Estado = EstadoSolicitud.Aprobada;
-        solicitud.UpdatedAt = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+        paso.Decision = EstadoSolicitud.Aprobada;
+        paso.AprobadorId = aprobadorId;
+        paso.Comentario = dto.Comentario;
+        paso.FechaDecision = now;
+        paso.UpdatedAt = now;
 
-        _context.AprobacionesAusencia.Add(new AprobacionAusencia
+        var siguiente = solicitud.Aprobaciones
+            .Where(a => a.IsActive && a.Decision == EstadoSolicitud.Pendiente)
+            .OrderBy(a => a.Orden).FirstOrDefault();
+
+        solicitud.UpdatedAt = now;
+        if (siguiente is null)
         {
-            Id = Guid.NewGuid(),
-            SolicitudId = solicitud.Id,
-            AprobadorId = aprobadorId,
-            Decision = EstadoSolicitud.Aprobada,
-            Comentario = dto.Comentario,
-            FechaDecision = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow,
-            IsActive = true
-        });
-
-        if (solicitud.TipoAusencia.DescuentaSaldo)
-            await AplicarSaldoAsync(solicitud, cancellationToken);
-
-        await CrearIncidenciaNominaAsync(solicitud, cancellationToken);
+            solicitud.Estado = EstadoSolicitud.Aprobada;
+            if (solicitud.TipoAusencia.DescuentaSaldo)
+                await AplicarSaldoAsync(solicitud, cancellationToken);
+            await CrearIncidenciaNominaAsync(solicitud, cancellationToken);
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
-        await _audit.LogCambioEstadoAsync("SolicitudAusencia", solicitud.Id, "Pendiente", "Aprobada", aprobadorId.ToString(), dto.Comentario, cancellationToken);
-        await NotificarDecisionAsync(solicitud, "aprobada", cancellationToken);
+        await _audit.LogCambioEstadoAsync("SolicitudAusencia", solicitud.Id, "Pendiente", solicitud.Estado.ToString(), aprobadorId.ToString(), dto.Comentario, cancellationToken);
+
+        if (solicitud.Estado == EstadoSolicitud.Aprobada)
+            await NotificarDecisionAsync(solicitud, "aprobada", cancellationToken);
 
         return Result<SolicitudAusenciaDto>.Ok(await MapDtoAsync(solicitud.Id, cancellationToken));
     }
 
-    public async Task<Result<SolicitudAusenciaDto>> RechazarAsync(Guid aprobadorId, Guid solicitudId, AprobacionRequestDto dto, bool isRhAdmin, CancellationToken cancellationToken = default)
+    public async Task<Result<SolicitudAusenciaDto>> RechazarAsync(Guid aprobadorId, Guid solicitudId, AprobacionRequestDto dto, bool isRhAdmin, bool isNominaAdmin, CancellationToken cancellationToken = default)
     {
         var solicitud = await _context.SolicitudesAusencia
             .Include(s => s.Colaborador)
             .Include(s => s.TipoAusencia)
+            .Include(s => s.Aprobaciones)
             .FirstOrDefaultAsync(s => s.Id == solicitudId && s.IsActive, cancellationToken);
 
         if (solicitud is null) return Result<SolicitudAusenciaDto>.Fail("Solicitud no encontrada.");
         if (solicitud.Estado != EstadoSolicitud.Pendiente)
             return Result<SolicitudAusenciaDto>.Fail("La solicitud no está pendiente.");
 
-        if (!await PuedeAprobarAsync(aprobadorId, solicitud, isRhAdmin, cancellationToken))
+        var paso = GetPasoActual(solicitud);
+        if (paso is null)
+            return Result<SolicitudAusenciaDto>.Fail("No hay un paso de aprobación pendiente.");
+        if (!PuedeDecidirPaso(paso, aprobadorId, isRhAdmin, isNominaAdmin))
             return Result<SolicitudAusenciaDto>.Fail("No autorizado para rechazar esta solicitud.");
 
-        solicitud.Estado = EstadoSolicitud.Rechazada;
-        solicitud.UpdatedAt = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+        paso.Decision = EstadoSolicitud.Rechazada;
+        paso.AprobadorId = aprobadorId;
+        paso.Comentario = dto.Comentario;
+        paso.FechaDecision = now;
+        paso.UpdatedAt = now;
 
-        _context.AprobacionesAusencia.Add(new AprobacionAusencia
-        {
-            Id = Guid.NewGuid(),
-            SolicitudId = solicitud.Id,
-            AprobadorId = aprobadorId,
-            Decision = EstadoSolicitud.Rechazada,
-            Comentario = dto.Comentario,
-            FechaDecision = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow,
-            IsActive = true
-        });
+        solicitud.Estado = EstadoSolicitud.Rechazada;
+        solicitud.UpdatedAt = now;
 
         await _context.SaveChangesAsync(cancellationToken);
         await _audit.LogCambioEstadoAsync("SolicitudAusencia", solicitud.Id, "Pendiente", "Rechazada", aprobadorId.ToString(), dto.Comentario, cancellationToken);
         await NotificarDecisionAsync(solicitud, "rechazada", cancellationToken);
 
         return Result<SolicitudAusenciaDto>.Ok(await MapDtoAsync(solicitud.Id, cancellationToken));
+    }
+
+    private static AprobacionAusencia? GetPasoActual(SolicitudAusencia s) =>
+        s.Aprobaciones.Where(a => a.IsActive).OrderBy(a => a.Orden)
+            .FirstOrDefault(a => a.Decision == EstadoSolicitud.Pendiente);
+
+    private static bool PuedeDecidirPaso(AprobacionAusencia paso, Guid actorId, bool isRhAdmin, bool isNominaAdmin)
+    {
+        if (isRhAdmin) return true; // RhAdmin actúa como super-aprobador (y cubre el nivel DH).
+        return paso.Nivel switch
+        {
+            NivelAprobacionAusencia.Jefe => paso.AprobadorId == actorId,
+            NivelAprobacionAusencia.Nominas => isNominaAdmin,
+            NivelAprobacionAusencia.DH => false,
+            _ => false,
+        };
     }
 
     public async Task<SolicitudAusenciaDto?> GetByIdAsync(Guid solicitudId, Guid? viewerColaboradorId, bool isRhAdmin, CancellationToken cancellationToken = default)
@@ -399,25 +456,33 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
         return result;
     }
 
-    public async Task<IReadOnlyList<PendingApprovalDto>> GetPendientesAprobacionAsync(Guid jefeId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<PendingApprovalDto>> GetPendientesAprobacionAsync(Guid aprobadorId, bool isRhAdmin, bool isNominaAdmin, CancellationToken cancellationToken = default)
     {
-        var subordinados = await _context.Colaboradores.AsNoTracking()
-            .Where(c => c.JefeDirectoId == jefeId && c.IsActive)
-            .Select(c => new { c.Id, Puesto = c.Puesto.Nombre, Departamento = c.Departamento.Nombre })
-            .ToListAsync(cancellationToken);
-
-        var subIds = subordinados.Select(s => s.Id).ToList();
-        var meta = subordinados.ToDictionary(s => s.Id);
-
         var solicitudes = await _context.SolicitudesAusencia.AsNoTracking()
-            .Include(s => s.Colaborador)
+            .Include(s => s.Colaborador).ThenInclude(c => c.Puesto)
+            .Include(s => s.Colaborador).ThenInclude(c => c.Departamento)
             .Include(s => s.TipoAusencia)
-            .Where(s => subIds.Contains(s.ColaboradorId) && s.Estado == EstadoSolicitud.Pendiente && s.IsActive)
+            .Include(s => s.Aprobaciones).ThenInclude(a => a.Aprobador)
+            .Where(s => s.Estado == EstadoSolicitud.Pendiente && s.IsActive)
             .OrderBy(s => s.FechaInicio)
             .ToListAsync(cancellationToken);
 
-        var result = new List<PendingApprovalDto>();
+        var relevantes = new List<(SolicitudAusencia Solicitud, AprobacionAusencia Paso)>();
         foreach (var s in solicitudes)
+        {
+            var paso = GetPasoActual(s);
+            if (paso is null) continue;
+
+            var autorizado = isRhAdmin
+                || (paso.Nivel == NivelAprobacionAusencia.Jefe && paso.AprobadorId == aprobadorId)
+                || (paso.Nivel == NivelAprobacionAusencia.Nominas && isNominaAdmin);
+
+            if (autorizado)
+                relevantes.Add((s, paso));
+        }
+
+        var result = new List<PendingApprovalDto>();
+        foreach (var (s, paso) in relevantes)
         {
             decimal? saldoDisponible = null;
             decimal? saldoPosterior = null;
@@ -428,17 +493,18 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
                 saldoPosterior = saldoDisponible.HasValue ? saldoDisponible - s.DiasSolicitados : null;
             }
 
-            var traslapes = await GetTraslapesEquipoAsync(jefeId, s, cancellationToken);
-            var info = meta.GetValueOrDefault(s.ColaboradorId);
+            var traslapes = s.Colaborador.JefeDirectoId.HasValue
+                ? await GetTraslapesEquipoAsync(s.Colaborador.JefeDirectoId.Value, s, cancellationToken)
+                : Array.Empty<string>();
 
             result.Add(new PendingApprovalDto(
                 s.Id, s.ColaboradorId,
                 $"{s.Colaborador.Nombre} {s.Colaborador.ApellidoPaterno}",
-                info?.Puesto ?? "",
-                info?.Departamento ?? "",
+                s.Colaborador.Puesto?.Nombre ?? "",
+                s.Colaborador.Departamento?.Nombre ?? "",
                 s.TipoAusenciaId, s.TipoAusencia.Nombre, s.TipoAusencia.Codigo,
                 s.FechaInicio, s.FechaFin, s.DiasSolicitados, s.Comentario, s.Estado, s.CreatedAt,
-                saldoDisponible, saldoPosterior, traslapes));
+                saldoDisponible, saldoPosterior, traslapes, paso.Nivel, MapPasosAprobacion(s)));
         }
         return result;
     }
@@ -557,7 +623,7 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
             s.TipoAusencia.Nombre,
             s.FechaInicio, s.FechaFin, s.DiasSolicitados,
             s.Estado.ToString(),
-            s.Aprobaciones.OrderByDescending(a => a.FechaDecision).Select(a => a.Aprobador.Nombre).FirstOrDefault()
+            s.Aprobaciones.OrderByDescending(a => a.FechaDecision).Select(a => a.Aprobador == null ? null : a.Aprobador.Nombre).FirstOrDefault()
         )).ToListAsync(cancellationToken);
     }
 
@@ -673,11 +739,6 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
         return traslapes;
     }
 
-    private async Task<bool> PuedeAprobarAsync(Guid aprobadorId, SolicitudAusencia solicitud, bool isRhAdmin, CancellationToken cancellationToken)
-    {
-        if (isRhAdmin) return true;
-        return solicitud.Colaborador.JefeDirectoId == aprobadorId;
-    }
 
     private async Task<SolicitudAusencia?> GetOwnedSolicitudAsync(Guid colaboradorId, Guid solicitudId, CancellationToken cancellationToken)
         => await _context.SolicitudesAusencia.FirstOrDefaultAsync(s => s.Id == solicitudId && s.ColaboradorId == colaboradorId && s.IsActive, cancellationToken);
@@ -687,6 +748,7 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
         var s = await _context.SolicitudesAusencia.AsNoTracking()
             .Include(x => x.Colaborador)
             .Include(x => x.TipoAusencia)
+            .Include(x => x.Aprobaciones).ThenInclude(a => a.Aprobador)
             .FirstAsync(x => x.Id == id, cancellationToken);
 
         return new SolicitudAusenciaDto(
@@ -696,14 +758,35 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
             s.FechaInicio, s.FechaFin, s.DiasSolicitados, s.Comentario, s.Estado, s.CreatedAt,
             s.EsDiaCompleto,
             FormatHora(s.HoraInicio),
-            FormatHora(s.HoraFin));
+            FormatHora(s.HoraFin),
+            MapPasosAprobacion(s));
     }
+
+    private static IReadOnlyList<PasoAprobacionDto> MapPasosAprobacion(SolicitudAusencia s) =>
+        s.Aprobaciones.Where(a => a.IsActive).OrderBy(a => a.Orden)
+            .Select(a => new PasoAprobacionDto(
+                a.Orden,
+                a.Nivel,
+                NivelLabel(a.Nivel),
+                a.Decision,
+                a.Aprobador is null ? null : $"{a.Aprobador.Nombre} {a.Aprobador.ApellidoPaterno}",
+                a.Comentario,
+                a.FechaDecision))
+            .ToList();
+
+    private static string NivelLabel(NivelAprobacionAusencia nivel) => nivel switch
+    {
+        NivelAprobacionAusencia.Jefe => "Jefe directo",
+        NivelAprobacionAusencia.DH => "Desarrollo Humano",
+        NivelAprobacionAusencia.Nominas => "Nóminas",
+        _ => nivel.ToString(),
+    };
 
     private static TipoAusenciaDto MapTipoDto(TipoAusencia t) => new(
         t.Id, t.Codigo, t.Nombre, t.DescuentaSaldo, t.RequiereAprobacion, t.Color,
         t.Categoria, t.EsParcial, t.PermiteMultiDia, t.DiasMaximosAnuales, t.DiasMaximosEvento,
         t.RequiereComprobante, t.Remunerado, t.BaseLegalLft, t.Descripcion, t.Icono, t.Orden,
-        t.PermiteSolicitudEmpleado);
+        t.PermiteSolicitudEmpleado, t.RequiereAprobacionJefe, t.RequiereAprobacionDH, t.RequiereAprobacionNominas);
 
     private static TimeSpan? ParseHora(string? value)
     {

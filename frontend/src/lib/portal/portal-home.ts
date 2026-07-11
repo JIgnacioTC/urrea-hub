@@ -14,12 +14,12 @@ export type PortalQuickAction = {
 export const PORTAL_QUICK_ACTIONS: PortalQuickAction[] = [
   {
     href: "/portal/asistencia",
-    label: "Asistencia",
-    description: "Entrada y salida",
+    label: "Asistencia y horarios",
+    description: "Entrada, salida y turno",
     icon: "clock",
-    infoTitle: "Control de asistencia",
+    infoTitle: "Control de asistencia y horarios",
     infoContent:
-      "Registra tu entrada y salida del día. Si olvidaste marcar o hubo un error, puedes solicitar una corrección desde la misma pantalla.",
+      "Registra tu entrada y salida del día, consulta tu turno activo y solicita cambios de horario. Si olvidaste marcar o hubo un error, puedes solicitar una corrección desde la misma pantalla.",
     accent: "primary",
   },
   {

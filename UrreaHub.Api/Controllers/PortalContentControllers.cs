@@ -24,7 +24,42 @@ public class PortalContentController : ControllerBase
 
     [HttpGet("feed")]
     public async Task<ActionResult<IReadOnlyList<FeedPostDto>>> GetFeed(CancellationToken cancellationToken)
-        => Ok(await _portalService.GetFeedAsync(cancellationToken));
+        => Ok(await _portalService.GetFeedAsync(_currentUser.ColaboradorId, cancellationToken));
+
+    [HttpPost("feed")]
+    public async Task<ActionResult<FeedPostDto>> CrearPublicacion([FromBody] CrearPublicacionDto dto, CancellationToken cancellationToken)
+    {
+        var result = await _portalService.CrearPublicacionAsync(_currentUser.ColaboradorId, dto, cancellationToken);
+        return result.Success ? Ok(result.Data) : BadRequest(new { error = result.Error });
+    }
+
+    [HttpDelete("feed/{id:guid}")]
+    public async Task<IActionResult> EliminarPublicacion(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _portalService.EliminarPublicacionPropiaAsync(_currentUser.ColaboradorId, id, cancellationToken);
+        return result.Success ? NoContent() : BadRequest(new { error = result.Error });
+    }
+
+    [HttpPost("feed/{id:guid}/like")]
+    public async Task<ActionResult<ToggleReaccionResultDto>> ToggleLike(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _portalService.ToggleReaccionAsync(_currentUser.ColaboradorId, id, cancellationToken);
+        return result.Success ? Ok(result.Data) : BadRequest(new { error = result.Error });
+    }
+
+    [HttpGet("feed/{id:guid}/comentarios")]
+    public async Task<ActionResult<IReadOnlyList<ComentarioDto>>> GetComentarios(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _portalService.GetComentariosAsync(_currentUser.ColaboradorId, id, cancellationToken);
+        return result.Success ? Ok(result.Data) : NotFound(new { error = result.Error });
+    }
+
+    [HttpPost("feed/{id:guid}/comentarios")]
+    public async Task<ActionResult<ComentarioDto>> CrearComentario(Guid id, [FromBody] CrearComentarioDto dto, CancellationToken cancellationToken)
+    {
+        var result = await _portalService.CrearComentarioAsync(_currentUser.ColaboradorId, id, dto, cancellationToken);
+        return result.Success ? Ok(result.Data) : BadRequest(new { error = result.Error });
+    }
 
     [HttpGet("beneficios/catalogo")]
     public async Task<ActionResult<BeneficiosCatalogoDto>> GetBeneficiosCatalogo(

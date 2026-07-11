@@ -6,6 +6,7 @@ public static class AppRoles
     public const string Jefe = "Jefe";
     public const string RhAdmin = "RhAdmin";
     public const string TiAdmin = "TiAdmin";
+    public const string NominaAdmin = "NominaAdmin";
 
     public const string JefeOrRh = "Jefe,RhAdmin";
     public const string AdminOrTi = "RhAdmin,TiAdmin";
@@ -36,4 +37,5 @@ public interface ICurrentUser
     bool IsRhAdmin { get; }
     bool IsTiAdmin { get; }
     bool IsJefe { get; }
+    bool IsNominaAdmin { get; }
 }

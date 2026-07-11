@@ -185,7 +185,7 @@ public class VacacionesWorkflowController : ControllerBase
     [Authorize(Policy = "ManagerApproval")]
     public async Task<ActionResult<SolicitudAusenciaDto>> Aprobar(Guid id, [FromBody] AprobacionRequestDto dto, CancellationToken cancellationToken)
     {
-        var result = await _solicitudService.AprobarAsync(_currentUser.ColaboradorId, id, dto, _currentUser.IsRhAdmin, cancellationToken);
+        var result = await _solicitudService.AprobarAsync(_currentUser.ColaboradorId, id, dto, _currentUser.IsRhAdmin, _currentUser.IsNominaAdmin, cancellationToken);
         return result.Success ? Ok(result.Data) : BadRequest(new { error = result.Error });
     }
 
@@ -198,7 +198,7 @@ public class VacacionesWorkflowController : ControllerBase
     [Authorize(Policy = "ManagerApproval")]
     public async Task<ActionResult<SolicitudAusenciaDto>> Rechazar(Guid id, [FromBody] AprobacionRequestDto dto, CancellationToken cancellationToken)
     {
-        var result = await _solicitudService.RechazarAsync(_currentUser.ColaboradorId, id, dto, _currentUser.IsRhAdmin, cancellationToken);
+        var result = await _solicitudService.RechazarAsync(_currentUser.ColaboradorId, id, dto, _currentUser.IsRhAdmin, _currentUser.IsNominaAdmin, cancellationToken);
         return result.Success ? Ok(result.Data) : BadRequest(new { error = result.Error });
     }
 
@@ -216,7 +216,7 @@ public class VacacionesWorkflowController : ControllerBase
     [HttpGet("pending-approvals")]
     [Authorize(Policy = "ManagerApproval")]
     public async Task<ActionResult<IReadOnlyList<PendingApprovalDto>>> Pendientes(CancellationToken cancellationToken)
-        => Ok(await _solicitudService.GetPendientesAprobacionAsync(_currentUser.ColaboradorId, cancellationToken));
+        => Ok(await _solicitudService.GetPendientesAprobacionAsync(_currentUser.ColaboradorId, _currentUser.IsRhAdmin, _currentUser.IsNominaAdmin, cancellationToken));
 
     [HttpGet("requests/{id:guid}")]
     public async Task<ActionResult<SolicitudAusenciaDto>> GetRequest(Guid id, CancellationToken cancellationToken)
