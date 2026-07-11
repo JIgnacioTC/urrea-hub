@@ -41,6 +41,13 @@ public class AbsenceAdminController : ControllerBase
     public Task<TipoAusenciaDto> UpdateType(Guid id, [FromBody] UpsertTipoAusenciaDto dto, CancellationToken ct) =>
         _admin.UpsertTypeAsync(id, dto, ct);
 
+    [HttpDelete("types/{id:guid}")]
+    public async Task<IActionResult> DeleteType(Guid id, CancellationToken ct)
+    {
+        await _admin.DeleteTypeAsync(id, ct);
+        return NoContent();
+    }
+
     [HttpGet("calendars")]
     public Task<IReadOnlyList<CalendarioLaboralDto>> Calendars([FromQuery] int? anio, CancellationToken ct) =>
         _admin.ListCalendarsAsync(anio, ct);

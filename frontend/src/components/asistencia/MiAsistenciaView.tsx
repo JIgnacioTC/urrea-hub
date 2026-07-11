@@ -87,14 +87,16 @@ export function MiAsistenciaView() {
             <p className="text-sm">{hoy?.fuente ?? "—"}</p>
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button type="button" onClick={checkIn} disabled={loading || (!!hoy?.horaEntrada && !hoy?.horaSalida)}>
-            Registrar entrada
-          </Button>
-          <Button type="button" variant="secondary" onClick={checkOut} disabled={loading || !hoy?.horaEntrada || !!hoy?.horaSalida}>
-            Registrar salida
-          </Button>
-        </div>
+        {summary?.puedenChecarRemotamente && (
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <Button type="button" onClick={checkIn} disabled={loading || (!!hoy?.horaEntrada && !hoy?.horaSalida)}>
+              Checar Entrada Remotamente
+            </Button>
+            <Button type="button" variant="secondary" onClick={checkOut} disabled={loading || !hoy?.horaEntrada || !!hoy?.horaSalida}>
+              Checar Salida Remotamente
+            </Button>
+          </div>
+        )}
       </Card>
 
       <Card title="Historial reciente">

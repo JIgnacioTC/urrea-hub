@@ -46,6 +46,11 @@ public class AttendanceController : ControllerBase
         return result.Success ? Ok(result.Data) : BadRequest(new { error = result.Error });
     }
 
+    [HttpPost("checador/verificar")]
+    [AllowAnonymous]
+    public Task<ChecadorResultDto> VerifyAndRegisterChecador([FromBody] ChecadorVerifyDto dto, CancellationToken ct)
+        => _attendance.VerifyAndRegisterChecadorAsync(dto, ct);
+
     [HttpPost("corrections")]
     public async Task<ActionResult<CorreccionDto>> CreateCorrection([FromBody] CrearCorreccionDto dto, CancellationToken ct)
     {

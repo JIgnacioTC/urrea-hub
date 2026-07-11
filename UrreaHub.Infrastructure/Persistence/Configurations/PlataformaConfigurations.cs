@@ -18,3 +18,15 @@ public class MetadatoPlataformaConfiguration : IEntityTypeConfiguration<Metadato
         builder.Property(m => m.ContenidoJson).HasColumnType("nvarchar(max)").IsRequired();
     }
 }
+
+public class ConfiguracionGlobalConfiguration : IEntityTypeConfiguration<ConfiguracionGlobal>
+{
+    public void Configure(EntityTypeBuilder<ConfiguracionGlobal> builder)
+    {
+        builder.ToTable("ConfiguracionesGlobales", "Plataforma");
+        builder.HasIndex(c => c.Clave).IsUnique();
+        builder.Property(c => c.Clave).HasMaxLength(200).IsRequired();
+        builder.Property(c => c.Valor).HasColumnType("nvarchar(max)").IsRequired();
+        builder.Property(c => c.Descripcion).HasMaxLength(1000);
+    }
+}

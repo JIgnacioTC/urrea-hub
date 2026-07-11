@@ -52,7 +52,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
-        policy.WithOrigins(builder.Configuration["Frontend:Url"] ?? "http://localhost:3000")
+        var raw = builder.Configuration["Frontend:Url"] ?? "http://localhost:3000";
+        // Supports multiple origins separated by commas: "https://app.vercel.app,http://localhost:3000"
+        var origins = raw.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        policy.WithOrigins(origins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });

@@ -9,6 +9,7 @@ public record EmployeeListDto(
     string? PreferredName,
     string Position,
     string Department,
+    string? Subarea,
     string? Area,
     string? CostCenter,
     string? ManagerName,
@@ -20,7 +21,9 @@ public record EmployeeListDto(
     string? ExternalSource,
     string SyncStatus,
     DateTime? LastSyncAt,
-    bool IsManualOverride);
+    bool IsManualOverride,
+    bool EsCuentaGenerica,
+    bool PuedenChecarRemotamente);
 
 public record EmployeeDetailDto(
     Guid Id,
@@ -36,6 +39,7 @@ public record EmployeeDetailDto(
     DateTime? TerminationDate,
     string Position,
     string Department,
+    string? Subarea,
     string? Area,
     string? Location,
     string? CostCenter,
@@ -49,7 +53,9 @@ public record EmployeeDetailDto(
     bool IsManualOverride,
     EmployeePersonalDto? Personal,
     EmployeeEmploymentDto? Employment,
-    IReadOnlyList<EmployeeSummaryDto> DirectReports);
+    IReadOnlyList<EmployeeSummaryDto> DirectReports,
+    bool EsCuentaGenerica,
+    bool PuedenChecarRemotamente);
 
 public record EmployeePersonalDto(
     string? Rfc,
@@ -151,7 +157,9 @@ public record EmployeeModuleLinkDto(
 
 public record EmployeeUpdateDto(
     string? PreferredName,
-    string? Phone);
+    string? Phone,
+    bool? EsCuentaGenerica,
+    bool? PuedenChecarRemotamente);
 
 public record EmployeeOrganizationDto(
     Guid? ManagerId,
@@ -159,6 +167,7 @@ public record EmployeeOrganizationDto(
     string? ManagerEmployeeNumber,
     Guid DepartmentId,
     string Department,
+    string? Subarea,
     string? Area,
     Guid? LocationId,
     string? Location,

@@ -115,4 +115,5 @@ export const absenceAdminService = {
       body: JSON.stringify({ comentario: motivo }),
     }),
   listPayrollIncidents: () => fetchApi<IncidenciaNomina[]>(`${base}/payroll-incidents`),
+  deleteType: (id: string) => fetchApi<void>(`${base}/types/${id}`, { method: "DELETE" }),
 };

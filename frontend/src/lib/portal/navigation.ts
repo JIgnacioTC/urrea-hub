@@ -60,6 +60,7 @@ const MI_DIA_LINKS: PortalNavLink[] = [
   { href: "/portal/mi-ficha", label: "Mi ficha", shortLabel: "Ficha", icon: "users" },
   { href: "/portal/asistencia", label: "Mi asistencia", shortLabel: "Asist.", icon: "clock" },
   { href: "/portal/horarios", label: "Mis Horarios", shortLabel: "Horarios", icon: "clock" },
+  { href: "/portal/checador", label: "Estación Checador", shortLabel: "Checador", icon: "clock" },
   { href: "/portal/vacaciones", label: "Vacaciones y permisos", shortLabel: "Tiempo", icon: "calendar" },
   { href: "/portal/permisos", label: "Mis Permisos", shortLabel: "Permisos", icon: "calendar" },
   { href: "/portal/onboarding", label: "Mi onboarding", shortLabel: "Onboard.", icon: "onboarding" },
@@ -141,6 +142,7 @@ export const ADMIN_TI_SECTIONS: PortalNavSection[] = [
   {
     title: "Plataforma",
     links: [
+      { href: "/admin-ti/configuracion", label: "Variables Globales", shortLabel: "Config TI", icon: "analytics" },
       { href: "/ti/admin", label: "Explorador entidades", shortLabel: "Entidades", icon: "folder" },
       { href: "/ti", label: "Centro TI técnico", shortLabel: "TI", icon: "analytics" },
     ],
@@ -161,6 +163,7 @@ export const ADMIN_DH_SECTIONS: PortalNavSection[] = [
     links: [
       { href: "/admin-dh/organizacion/jefes", label: "Asignación de jefes", shortLabel: "Jefes", icon: "users" },
       { href: "/admin-dh/organizacion/areas", label: "Áreas", shortLabel: "Áreas", icon: "folder" },
+      { href: "/admin-dh/organizacion/subareas", label: "Subáreas", shortLabel: "Subáreas", icon: "folder" },
       { href: "/admin-dh/organizacion/departamentos", label: "Departamentos", shortLabel: "Depto.", icon: "folder" },
       { href: "/admin-dh/organizacion/puestos", label: "Puestos", shortLabel: "Puestos", icon: "folder" },
       { href: "/admin-dh/organizacion/sedes", label: "Sedes", shortLabel: "Sedes", icon: "folder" },
@@ -187,6 +190,7 @@ export const ADMIN_DH_SECTIONS: PortalNavSection[] = [
       { href: "/admin-dh/asistencia/reglas", label: "Reglas", shortLabel: "Reglas", icon: "folder" },
       { href: "/admin-dh/asistencia/nomina", label: "Reporte nómina", shortLabel: "Nómina", icon: "analytics" },
       { href: "/admin-dh/asistencia/comercial", label: "Fuerza de ventas", shortLabel: "Comercial", icon: "users" },
+      { href: "/admin-dh/asistencia/permisos-remotos", label: "Permisos remotos", shortLabel: "Remotos", icon: "shield" },
     ],
   },
   {

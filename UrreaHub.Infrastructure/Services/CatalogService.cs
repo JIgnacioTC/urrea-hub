@@ -43,7 +43,7 @@ public class CatalogService : ICatalogService
     {
         var areas = await _db.Areas
             .AsNoTracking()
-            .Include(a => a.Departamentos)
+            .Include(a => a.Subareas)
             .OrderBy(a => a.Nombre)
             .ToListAsync(ct);
 
@@ -52,9 +52,9 @@ public class CatalogService : ICatalogService
             a.Codigo,
             a.Nombre,
             a.Descripcion,
-            a.Departamentos
-                .OrderBy(d => d.Nombre)
-                .Select(d => new CatalogItemDto(d.Id, d.Codigo, d.Nombre, d.Descripcion))
+            a.Subareas
+                .OrderBy(s => s.Nombre)
+                .Select(s => new CatalogItemDto(s.Id, s.Codigo, s.Nombre, s.Descripcion))
                 .ToList()
         )).ToList();
     }

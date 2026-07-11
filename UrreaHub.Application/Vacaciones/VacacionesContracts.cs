@@ -30,7 +30,8 @@ public record TipoAusenciaDto(
     string? BaseLegalLft,
     string? Descripcion,
     string? Icono,
-    int Orden);
+    int Orden,
+    bool PermiteSolicitudEmpleado);
 
 public record ResumenTipoPermisoDto(
     Guid TipoAusenciaId,

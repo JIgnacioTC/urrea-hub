@@ -74,7 +74,7 @@ public class HcmEmployeeService : IHcmEmployeeService
                 c.Id, c.NumeroEmpleado,
                 $"{c.Nombre} {c.ApellidoPaterno}",
                 c.NombrePreferido ?? c.Nombre,
-                c.Puesto.Nombre, c.Departamento.Nombre, c.Departamento.Area.Nombre,
+                c.Puesto.Nombre, c.Departamento.Nombre, c.SubareaName(), c.AreaName(),
                 c.CentroCosto != null ? c.CentroCosto.Codigo : null,
                 c.JefeDirecto != null ? $"{c.JefeDirecto.Nombre} {c.JefeDirecto.ApellidoPaterno}" : null,
                 c.Sede != null ? c.Sede.Nombre : null,
@@ -82,7 +82,7 @@ public class HcmEmployeeService : IHcmEmployeeService
                 ResolveStatus(c),
                 c.FechaIngreso,
                 (int)((now - c.FechaIngreso).TotalDays / 365.25),
-                c.ExternalSource, c.SyncStatus, c.NominaSyncAt, c.IsManualOverride))
+                c.ExternalSource, c.SyncStatus, c.NominaSyncAt, c.IsManualOverride, c.EsCuentaGenerica, c.PuedenChecarRemotamente))
             .ToListAsync(cancellationToken);
 
         return new PagedResult<EmployeeListDto> { Items = items, Total = total, Page = page, PageSize = pageSize };
@@ -92,7 +92,7 @@ public class HcmEmployeeService : IHcmEmployeeService
     {
         var c = await _context.Colaboradores.AsNoTracking()
             .Include(x => x.Puesto)
-            .Include(x => x.Departamento).ThenInclude(d => d.Area)
+            .Include(x => x.Departamento).ThenInclude(d => d.Subarea).ThenInclude(s => s.Area)
             .Include(x => x.Sede)
             .Include(x => x.CentroCosto)
             .Include(x => x.RelacionLaboral)
@@ -122,7 +122,7 @@ public class HcmEmployeeService : IHcmEmployeeService
             c.Id, c.NumeroEmpleado, c.Nombre, c.ApellidoPaterno, c.ApellidoMaterno,
             c.NombrePreferido, c.Email, c.Telefono, ResolveStatus(c),
             c.FechaIngreso, c.FechaBaja,
-            c.Puesto.Nombre, c.Departamento.Nombre, c.AreaName(),
+            c.Puesto.Nombre, c.Departamento.Nombre, c.SubareaName(), c.AreaName(),
             c.Sede?.Nombre,
             c.CentroCosto != null ? $"{c.CentroCosto.Codigo} · {c.CentroCosto.Nombre}" : null,
             c.RelacionLaboral.Nombre,
@@ -134,7 +134,9 @@ public class HcmEmployeeService : IHcmEmployeeService
                 c.DatosLaborales.Jornada, c.DatosLaborales.Turno, c.DatosLaborales.GrupoNomina,
                 c.DatosLaborales.Sindicalizado, c.DatosLaborales.NivelVisibilidadCompensacion),
             c.Subordinados.Select(s => new EmployeeSummaryDto(
-                s.Id, s.NumeroEmpleado, $"{s.Nombre} {s.ApellidoPaterno}", s.Puesto.Nombre)).ToList());
+                s.Id, s.NumeroEmpleado, $"{s.Nombre} {s.ApellidoPaterno}", s.Puesto.Nombre)).ToList(),
+            c.EsCuentaGenerica,
+            c.PuedenChecarRemotamente);
     }
 
     public async Task<IReadOnlyList<EmployeeMovementDto>> GetMovementsAsync(Guid id, CancellationToken cancellationToken = default)
@@ -152,7 +154,7 @@ public class HcmEmployeeService : IHcmEmployeeService
     {
         var c = await _context.Colaboradores.AsNoTracking()
             .Include(x => x.Puesto)
-            .Include(x => x.Departamento).ThenInclude(d => d.Area)
+            .Include(x => x.Departamento).ThenInclude(d => d.Subarea).ThenInclude(s => s.Area)
             .Include(x => x.Sede)
             .Include(x => x.CentroCosto)
             .Include(x => x.JefeDirecto)
@@ -165,7 +167,7 @@ public class HcmEmployeeService : IHcmEmployeeService
             c.JefeDirectoId,
             c.JefeDirecto is null ? null : $"{c.JefeDirecto.Nombre} {c.JefeDirecto.ApellidoPaterno}",
             c.JefeDirecto?.NumeroEmpleado,
-            c.DepartamentoId, c.Departamento.Nombre, c.AreaName(),
+            c.DepartamentoId, c.Departamento.Nombre, c.SubareaName(), c.AreaName(),
             c.SedeId, c.Sede?.Nombre,
             c.CentroCostoId, c.CentroCosto != null ? $"{c.CentroCosto.Codigo} · {c.CentroCosto.Nombre}" : null,
             c.PuestoId, c.Puesto.Nombre,
@@ -292,6 +294,8 @@ public class HcmEmployeeService : IHcmEmployeeService
 
         if (dto.PreferredName is not null) c.NombrePreferido = dto.PreferredName;
         if (dto.Phone is not null) c.Telefono = dto.Phone;
+        if (dto.EsCuentaGenerica.HasValue) c.EsCuentaGenerica = dto.EsCuentaGenerica.Value;
+        if (dto.PuedenChecarRemotamente.HasValue) c.PuedenChecarRemotamente = dto.PuedenChecarRemotamente.Value;
         c.IsManualOverride = true;
         c.SyncStatus = EmployeeSyncStatus.ManualOverride;
         c.UpdatedAt = DateTime.UtcNow;
@@ -356,7 +360,7 @@ public class HcmEmployeeService : IHcmEmployeeService
     {
         var query = _context.Colaboradores.AsNoTracking()
             .Include(c => c.Puesto)
-            .Include(c => c.Departamento).ThenInclude(d => d.Area)
+            .Include(c => c.Departamento).ThenInclude(d => d.Subarea).ThenInclude(s => s.Area)
             .Include(c => c.Sede)
             .Include(c => c.CentroCosto)
             .Include(c => c.RelacionLaboral)
@@ -404,7 +408,8 @@ public class HcmEmployeeService : IHcmEmployeeService
 
 internal static class ColaboradorExtensions
 {
-    public static string? AreaName(this Colaborador c) => c.Departamento?.Area?.Nombre;
+    public static string? SubareaName(this Colaborador c) => c.Departamento?.Subarea?.Nombre;
+    public static string? AreaName(this Colaborador c) => c.Departamento?.Subarea?.Area?.Nombre;
 }
 
 public class IntegrationService : IIntegrationService
@@ -447,7 +452,7 @@ public class IntegrationService : IIntegrationService
         if (isNew)
         {
             var relacion = await _context.RelacionesLaborales.FirstAsync(cancellationToken);
-            var depto = await _context.Departamentos.Include(d => d.Area).FirstAsync(cancellationToken);
+            var depto = await _context.Departamentos.Include(d => d.Subarea).ThenInclude(s => s.Area).FirstAsync(cancellationToken);
             var puesto = await _context.Puestos.FirstAsync(cancellationToken);
             colaborador = new Colaborador
             {

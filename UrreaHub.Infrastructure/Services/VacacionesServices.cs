@@ -138,7 +138,7 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
     public async Task<IReadOnlyList<TipoAusenciaDto>> GetTiposPermisoAsync(CancellationToken cancellationToken = default)
     {
         var tipos = await _context.TiposAusencia.AsNoTracking()
-            .Where(t => t.IsActive && t.Categoria != CategoriaPermiso.Vacacion)
+            .Where(t => t.IsActive && t.Categoria != CategoriaPermiso.Vacacion && t.PermiteSolicitudEmpleado)
             .OrderBy(t => t.Orden)
             .ToListAsync(cancellationToken);
         return tipos.Select(MapTipoDto).ToList();
@@ -702,7 +702,8 @@ public class SolicitudAusenciaService : ISolicitudAusenciaService
     private static TipoAusenciaDto MapTipoDto(TipoAusencia t) => new(
         t.Id, t.Codigo, t.Nombre, t.DescuentaSaldo, t.RequiereAprobacion, t.Color,
         t.Categoria, t.EsParcial, t.PermiteMultiDia, t.DiasMaximosAnuales, t.DiasMaximosEvento,
-        t.RequiereComprobante, t.Remunerado, t.BaseLegalLft, t.Descripcion, t.Icono, t.Orden);
+        t.RequiereComprobante, t.Remunerado, t.BaseLegalLft, t.Descripcion, t.Icono, t.Orden,
+        t.PermiteSolicitudEmpleado);
 
     private static TimeSpan? ParseHora(string? value)
     {

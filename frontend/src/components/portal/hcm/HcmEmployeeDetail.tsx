@@ -192,20 +192,72 @@ export function HcmEmployeeDetailView({ id }: { id: string }) {
         )}
 
         {tab === "Información laboral" && (
-          <HcmFieldGrid fields={[
-            ["Puesto", col.position],
-            ["Departamento", col.department],
-            ["Área / dirección", col.area ?? "—"],
-            ["Centro de costo", col.costCenter ?? "—"],
-            ["Jefe inmediato", col.managerName ?? "—"],
-            ["Relación laboral", col.contractType],
-            ["Sede / ubicación", col.location ?? "—"],
-            ["Fecha de ingreso", new Date(col.hireDate).toLocaleDateString("es-MX", { dateStyle: "long" })],
-            ["Jornada", col.employment?.workSchedule ?? "—"],
-            ["Turno", col.employment?.shift ?? "—"],
-            ["Grupo nómina", col.employment?.payrollGroup ?? "—"],
-            ["Visibilidad compensación", col.employment?.compensationVisibility ?? "Restricted"],
-          ]} />
+          <div className="space-y-4">
+            {/* Toggle: Cuenta Genérica */}
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900">Tipo de cuenta</h4>
+                <p className="text-xs text-slate-500">Marca esta cuenta como genérica para excluirla de sincronizaciones de personal.</p>
+              </div>
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={col.esCuentaGenerica}
+                  onChange={async (e) => {
+                    const v = e.target.checked;
+                    try {
+                      const updated = await employeeService.updateEmployee(col.id, { esCuentaGenerica: v });
+                      setCol(updated);
+                    } catch (err) {
+                      alert(err instanceof Error ? err.message : "Error al actualizar.");
+                    }
+                  }}
+                  className="h-5 w-5 rounded border-slate-300 text-urrea-primary focus:ring-urrea-primary/20 cursor-pointer"
+                />
+                <span className="text-sm font-medium text-slate-700">Cuenta Genérica</span>
+              </label>
+            </div>
+
+            {/* Toggle: Checar Remotamente */}
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900">Checado Remoto</h4>
+                <p className="text-xs text-slate-500">Permite a este colaborador registrar asistencia desde el portal o móvil.</p>
+              </div>
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={col.puedenChecarRemotamente}
+                  onChange={async (e) => {
+                    const v = e.target.checked;
+                    try {
+                      const updated = await employeeService.updateEmployee(col.id, { puedenChecarRemotamente: v });
+                      setCol(updated);
+                    } catch (err) {
+                      alert(err instanceof Error ? err.message : "Error al actualizar.");
+                    }
+                  }}
+                  className="h-5 w-5 rounded border-slate-300 text-urrea-primary focus:ring-urrea-primary/20 cursor-pointer"
+                />
+                <span className="text-sm font-medium text-slate-700">Checado Remoto Permitido</span>
+              </label>
+            </div>
+
+            <HcmFieldGrid fields={[
+              ["Puesto", col.position],
+              ["Departamento", col.department],
+              ["Área / dirección", col.area ?? "—"],
+              ["Centro de costo", col.costCenter ?? "—"],
+              ["Jefe inmediato", col.managerName ?? "—"],
+              ["Relación laboral", col.contractType],
+              ["Sede / ubicación", col.location ?? "—"],
+              ["Fecha de ingreso", new Date(col.hireDate).toLocaleDateString("es-MX", { dateStyle: "long" })],
+              ["Jornada", col.employment?.workSchedule ?? "—"],
+              ["Turno", col.employment?.shift ?? "—"],
+              ["Grupo nómina", col.employment?.payrollGroup ?? "—"],
+              ["Visibilidad compensación", col.employment?.compensationVisibility ?? "Restricted"],
+            ]} />
+          </div>
         )}
 
         {tab === "Organización" && org && (

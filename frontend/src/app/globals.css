@@ -35,6 +35,80 @@
   body {
     @apply min-h-[100dvh] bg-urrea-bg-soft font-sans text-urrea-text antialiased;
   }
+
+  /* Estandarizar Inputs, Textareas y Selects */
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="time"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    @apply rounded-xl border border-urrea-border bg-urrea-bg px-3.5 py-2.5 text-sm text-urrea-text shadow-xs transition-all duration-200;
+    outline: none;
+  }
+
+  input[type="text"]:focus,
+  input[type="number"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  input[type="date"]:focus,
+  input[type="time"]:focus,
+  input[type="search"]:focus,
+  input[type="tel"]:focus,
+  input[type="url"]:focus,
+  textarea:focus,
+  select:focus {
+    @apply border-urrea-secondary ring-2 ring-urrea-secondary/20 shadow-xs;
+    outline: none;
+  }
+
+  /* Estandarizar Checkboxes y Radios */
+  input[type="checkbox"],
+  input[type="radio"] {
+    @apply rounded border-urrea-border text-urrea-secondary focus:ring-urrea-secondary/20 h-4.5 w-4.5 transition-all duration-200 cursor-pointer;
+  }
+
+  /* Estandarizar Botones */
+  button:not([role="tab"]):not(.cursor-default) {
+    @apply rounded-xl transition-all duration-200 active:scale-[0.98];
+  }
+
+  /* Estandarizar Tablas del Portal */
+  table {
+    @apply border-collapse w-full;
+  }
+  
+  th {
+    @apply bg-slate-50 text-slate-500 font-semibold px-4 py-3 text-xs uppercase tracking-wider border-b border-slate-200/80;
+  }
+
+  td {
+    @apply px-4 py-3 text-sm text-slate-600 border-b border-slate-100;
+  }
+
+  tr:hover td {
+    background-color: var(--urrea-bg-soft);
+  }
+
+  /* Contenedores de tabla (Cards de tabla) */
+  .table-container {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-soft overflow-hidden;
+  }
+
+  /* Estandarizar Tarjetas (Cards) */
+  .card-premium {
+    @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-soft hover:shadow-soft-lg transition-all duration-200;
+  }
+
+  /* Estandarizar Modales y Popups */
+  .modal-premium {
+    @apply rounded-2xl border border-slate-100 bg-white p-6 shadow-glow transition-all duration-200;
+  }
 }
 
 @layer utilities {

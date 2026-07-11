@@ -20,6 +20,7 @@ export interface AttendanceSummary {
   ausenciasPeriodo: number;
   correccionesPendientes: number;
   historialReciente: RegistroAsistencia[];
+  puedenChecarRemotamente: boolean;
 }
 
 export interface CorreccionAsistencia {
@@ -87,7 +88,25 @@ export const attendanceService = {
       method: "POST",
       body: JSON.stringify({ comentario: comentario ?? null }),
     }),
+
+  verifyAndRegisterChecador: (body: { numeroEmpleado: string; sedeId: string }) =>
+    fetchApi<ChecadorResult>(v1("/attendance/checador/verificar"), {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };
+
+export interface ChecadorResult {
+  success: boolean;
+  error?: string;
+  warning?: string;
+  empleadoNombre?: string;
+  numeroEmpleado?: string;
+  tipoRegistro?: string;
+  horaRegistro?: string;
+  turnoNombre?: string;
+  turnoHorario?: string;
+}
 
 export interface Turno {
   id: string;

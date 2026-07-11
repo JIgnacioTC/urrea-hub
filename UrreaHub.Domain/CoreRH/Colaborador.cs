@@ -45,4 +45,7 @@ public class Colaborador : BaseEntity
     public Guid? JefeDirectoId { get; set; }
     public Colaborador? JefeDirecto { get; set; }
     public ICollection<Colaborador> Subordinados { get; set; } = new List<Colaborador>();
+
+    public bool EsCuentaGenerica { get; set; }
+    public bool PuedenChecarRemotamente { get; set; }
 }

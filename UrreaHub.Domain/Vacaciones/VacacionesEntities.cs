@@ -35,6 +35,9 @@ public class TipoAusencia : BaseEntity
     public string? WebhookUrl { get; set; }
     public Guid? AreaDestinoId { get; set; }
     public Area? AreaDestino { get; set; }
+    public bool PermiteSolicitudEmpleado { get; set; } = true;
+    public bool NotificarTeams { get; set; }
+    public bool NotificarCorreo { get; set; }
 
     public ICollection<SolicitudAusencia> Solicitudes { get; set; } = new List<SolicitudAusencia>();
 }

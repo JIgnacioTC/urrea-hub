@@ -37,6 +37,7 @@ public record UpsertTipoAusenciaDto(
     string? Descripcion,
     string? Icono,
     int Orden,
+    bool PermiteSolicitudEmpleado = true,
     bool IsActive = true);
 
 public record CalendarioLaboralDto(
@@ -118,4 +119,5 @@ public interface IAbsenceAdminService
         CancellationToken cancellationToken = default);
     Task CancelAdministrativelyAsync(Guid solicitudId, string motivo, string performedBy, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<IncidenciaNominaDto>> ListPayrollIncidentsAsync(CancellationToken cancellationToken = default);
+    Task DeleteTypeAsync(Guid id, CancellationToken cancellationToken = default);
 }

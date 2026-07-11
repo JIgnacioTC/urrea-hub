@@ -28,7 +28,8 @@ public record AttendanceSummaryDto(
     int RetardosPeriodo,
     int AusenciasPeriodo,
     int CorreccionesPendientes,
-    IReadOnlyList<RegistroAsistenciaDto> HistorialReciente);
+    IReadOnlyList<RegistroAsistenciaDto> HistorialReciente,
+    bool PuedenChecarRemotamente);
 
 public record CrearCorreccionDto(
     DateTime Fecha,
@@ -166,8 +167,24 @@ public record CrearSolicitudCambioHorarioDto(
 public record DecisionCambioHorarioDto(
     string? Comentario);
 
+public record ChecadorVerifyDto(
+    string NumeroEmpleado,
+    Guid SedeId);
+
+public record ChecadorResultDto(
+    bool Success,
+    string? Error,
+    string? Warning,
+    string? EmpleadoNombre,
+    string? NumeroEmpleado,
+    string? TipoRegistro,
+    string? HoraRegistro,
+    string? TurnoNombre,
+    string? TurnoHorario);
+
 public interface IAttendanceService
 {
+    Task<ChecadorResultDto> VerifyAndRegisterChecadorAsync(ChecadorVerifyDto dto, CancellationToken cancellationToken = default);
     Task<AttendanceSummaryDto> GetMySummaryAsync(Guid colaboradorId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<RegistroAsistenciaDto>> GetMyRecordsAsync(Guid colaboradorId, DateTime? desde, DateTime? hasta, CancellationToken cancellationToken = default);
     Task<Result<RegistroAsistenciaDto>> CheckInAsync(Guid colaboradorId, CheckInOutDto dto, CancellationToken cancellationToken = default);

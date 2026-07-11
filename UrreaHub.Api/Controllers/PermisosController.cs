@@ -62,6 +62,8 @@ public class PermisosController : ControllerBase
 
         tipo.WebhookUrl = dto.WebhookUrl;
         tipo.AreaDestinoId = dto.AreaDestinoId;
+        tipo.NotificarTeams = dto.NotificarTeams;
+        tipo.NotificarCorreo = dto.NotificarCorreo;
         tipo.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -73,4 +75,6 @@ public class ConfigPermisoDto
 {
     public string? WebhookUrl { get; set; }
     public Guid? AreaDestinoId { get; set; }
+    public bool NotificarTeams { get; set; }
+    public bool NotificarCorreo { get; set; }
 }

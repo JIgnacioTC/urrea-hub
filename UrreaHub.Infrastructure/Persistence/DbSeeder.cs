@@ -16,15 +16,16 @@ public static class DbSeeder
 
         var relacion = new RelacionLaboral { Id = Guid.NewGuid(), Codigo = "PLANTA", Nombre = "Planta", CreatedAt = DateTime.UtcNow, IsActive = true };
         var area = new Area { Id = Guid.NewGuid(), Codigo = "ADM", Nombre = "Administración", CreatedAt = DateTime.UtcNow, IsActive = true };
-        var deptoRh = new Departamento { Id = Guid.NewGuid(), Codigo = "RH", Nombre = "Recursos Humanos", AreaId = area.Id, CreatedAt = DateTime.UtcNow, IsActive = true };
-        var deptoOps = new Departamento { Id = Guid.NewGuid(), Codigo = "OPS", Nombre = "Operaciones", AreaId = area.Id, CreatedAt = DateTime.UtcNow, IsActive = true };
+        var subarea = new Subarea { Id = Guid.NewGuid(), Codigo = "ADM-SA", Nombre = "Administración Staff", AreaId = area.Id, CreatedAt = DateTime.UtcNow, IsActive = true };
+        var deptoRh = new Departamento { Id = Guid.NewGuid(), Codigo = "RH", Nombre = "Recursos Humanos", SubareaId = subarea.Id, CreatedAt = DateTime.UtcNow, IsActive = true };
+        var deptoOps = new Departamento { Id = Guid.NewGuid(), Codigo = "OPS", Nombre = "Operaciones", SubareaId = subarea.Id, CreatedAt = DateTime.UtcNow, IsActive = true };
         var sede = new Sede { Id = Guid.NewGuid(), Codigo = "MTY", Nombre = "Monterrey", Ciudad = "Monterrey", CreatedAt = DateTime.UtcNow, IsActive = true };
         var cc = new CentroCosto { Id = Guid.NewGuid(), Codigo = "CC001", Nombre = "Corporativo", CreatedAt = DateTime.UtcNow, IsActive = true };
         var puestoDir = new Puesto { Id = Guid.NewGuid(), Codigo = "DIR", Nombre = "Director", NivelJerarquico = 1, CreatedAt = DateTime.UtcNow, IsActive = true };
         var puestoJefe = new Puesto { Id = Guid.NewGuid(), Codigo = "JEFE", Nombre = "Jefe de área", NivelJerarquico = 2, CreatedAt = DateTime.UtcNow, IsActive = true };
         var puestoAnalista = new Puesto { Id = Guid.NewGuid(), Codigo = "ANAL", Nombre = "Analista", NivelJerarquico = 3, CreatedAt = DateTime.UtcNow, IsActive = true };
 
-        context.AddRange(relacion, area, deptoRh, deptoOps, sede, cc, puestoDir, puestoJefe, puestoAnalista);
+        context.AddRange(relacion, area, subarea, deptoRh, deptoOps, sede, cc, puestoDir, puestoJefe, puestoAnalista);
 
         var politica = new PoliticaVacaciones { Id = Guid.NewGuid(), Nombre = "Estándar URREA", DiasAnuales = 12, AntiguedadMinimaMeses = 0, Acumulable = false, CreatedAt = DateTime.UtcNow, IsActive = true };
         var calendario = new CalendarioLaboral { Id = Guid.NewGuid(), Nombre = "México 2026", Anio = 2026, SedeId = sede.Id, CreatedAt = DateTime.UtcNow, IsActive = true };

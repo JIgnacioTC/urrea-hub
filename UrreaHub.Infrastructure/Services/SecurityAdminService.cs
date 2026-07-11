@@ -204,7 +204,7 @@ public class SecurityAdminService : ISecurityAdminService
     {
         var c = await _context.Colaboradores.AsNoTracking()
             .Include(x => x.Puesto)
-            .Include(x => x.Departamento).ThenInclude(d => d.Area)
+            .Include(x => x.Departamento).ThenInclude(d => d.Subarea).ThenInclude(s => s.Area)
             .Include(x => x.CuentaAcceso)
             .FirstOrDefaultAsync(x => x.Id == colaboradorId && x.IsActive, cancellationToken);
 
@@ -220,7 +220,7 @@ public class SecurityAdminService : ISecurityAdminService
             $"{c.Nombre} {c.ApellidoPaterno}".Trim(),
             c.Puesto.Nombre,
             c.Departamento.Nombre,
-            c.Departamento.Area?.Nombre,
+            c.Departamento.Subarea?.Area?.Nombre,
             roles,
             permisos);
     }

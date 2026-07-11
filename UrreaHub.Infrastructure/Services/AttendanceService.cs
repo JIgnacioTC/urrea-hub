@@ -46,12 +46,17 @@ public class AttendanceService : IAttendanceService
             .Take(14)
             .ToListAsync(cancellationToken);
 
+        var colaborador = await _context.Colaboradores.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == colaboradorId, cancellationToken);
+        var puedenChecarRemotamente = colaborador?.PuedenChecarRemotamente ?? false;
+
         return new AttendanceSummaryDto(
             registroHoy is null ? null : MapRegistro(registroHoy),
             retardos,
             ausencias,
             correccionesPendientes,
-            historial.Select(MapRegistro).ToList());
+            historial.Select(MapRegistro).ToList(),
+            puedenChecarRemotamente);
     }
 
     public async Task<IReadOnlyList<RegistroAsistenciaDto>> GetMyRecordsAsync(Guid colaboradorId, DateTime? desde, DateTime? hasta, CancellationToken cancellationToken = default)
@@ -708,5 +713,129 @@ public class AttendanceService : IAttendanceService
             s.Aprobador != null ? $"{s.Aprobador.Nombre} {s.Aprobador.ApellidoPaterno}" : null,
             s.FechaDecision,
             s.CreatedAt);
+    }
+
+    public async Task<ChecadorResultDto> VerifyAndRegisterChecadorAsync(ChecadorVerifyDto dto, CancellationToken cancellationToken = default)
+    {
+        var cleanNumero = dto.NumeroEmpleado?.Trim();
+        if (string.IsNullOrEmpty(cleanNumero))
+        {
+            return new ChecadorResultDto(false, "Número de empleado requerido.", null, null, null, null, null, null, null);
+        }
+
+        // Find active employee by EmployeeNumber
+        var emp = await _context.Colaboradores
+            .Include(c => c.Sede)
+            .FirstOrDefaultAsync(c => c.NumeroEmpleado == cleanNumero && c.IsActive && c.FechaBaja == null, cancellationToken);
+
+        if (emp == null)
+        {
+            return new ChecadorResultDto(false, "Colaborador no encontrado o inactivo.", null, null, cleanNumero, null, null, null, null);
+        }
+
+        var nombreCompleto = $"{emp.Nombre} {emp.ApellidoPaterno}".Trim();
+
+        // 1. Check for approved leaves/absences today
+        var today = DateTime.UtcNow.Date;
+        var now = DateTime.UtcNow;
+
+        var hasAbsence = await _context.SolicitudesAusencia
+            .AnyAsync(s => s.ColaboradorId == emp.Id && 
+                           s.IsActive && 
+                           s.Estado == Domain.Common.EstadoSolicitud.Aprobada && 
+                           s.FechaInicio <= today && 
+                           s.FechaFin >= today, cancellationToken);
+
+        if (hasAbsence)
+        {
+            return new ChecadorResultDto(false, "El colaborador cuenta con un permiso o ausencia activa el día de hoy.", null, nombreCompleto, cleanNumero, null, null, null, null);
+        }
+
+        // 2. Check shift assignment (AsignacionTurno)
+        var shiftAssign = await _context.AsignacionesTurno
+            .Include(a => a.Turno)
+            .Where(a => a.ColaboradorId == emp.Id && a.IsActive && a.FechaInicio <= today && (a.FechaFin == null || a.FechaFin >= today))
+            .OrderByDescending(a => a.FechaInicio)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (shiftAssign == null)
+        {
+            return new ChecadorResultDto(false, "El colaborador no cuenta con un turno asignado.", null, nombreCompleto, cleanNumero, null, null, null, null);
+        }
+
+        var turno = shiftAssign.Turno;
+        var dayOfWeek = today.DayOfWeek;
+        bool appliesToday = false;
+        switch (dayOfWeek)
+        {
+            case DayOfWeek.Monday: appliesToday = turno.AplicaLunes; break;
+            case DayOfWeek.Tuesday: appliesToday = turno.AplicaMartes; break;
+            case DayOfWeek.Wednesday: appliesToday = turno.AplicaMiercoles; break;
+            case DayOfWeek.Thursday: appliesToday = turno.AplicaJueves; break;
+            case DayOfWeek.Friday: appliesToday = turno.AplicaViernes; break;
+            case DayOfWeek.Saturday: appliesToday = turno.AplicaSabado; break;
+            case DayOfWeek.Sunday: appliesToday = turno.AplicaDomingo; break;
+        }
+
+        string? warning = null;
+        if (!appliesToday)
+        {
+            return new ChecadorResultDto(false, "Hoy es día de descanso para el colaborador según su turno.", null, nombreCompleto, cleanNumero, null, null, turno.Nombre, $"{turno.HoraEntrada:hh\\:mm} - {turno.HoraSalida:hh\\:mm}");
+        }
+
+        // 3. Register Check-in or Check-out
+        var existing = await _context.RegistrosAsistencia
+            .FirstOrDefaultAsync(r => r.ColaboradorId == emp.Id && r.Fecha == today && r.IsActive, cancellationToken);
+
+        string tipoReg = "Entrada";
+
+        if (existing != null && existing.HoraEntrada != null && existing.HoraSalida != null)
+        {
+            return new ChecadorResultDto(false, "El colaborador ya registró su entrada y salida del día de hoy.", null, nombreCompleto, cleanNumero, null, null, turno.Nombre, $"{turno.HoraEntrada:hh\\:mm} - {turno.HoraSalida:hh\\:mm}");
+        }
+
+        if (existing == null)
+        {
+            existing = new RegistroAsistencia
+            {
+                Id = Guid.NewGuid(),
+                ColaboradorId = emp.Id,
+                Fecha = today,
+                HoraEntrada = now,
+                Fuente = FuenteRegistroAsistencia.Biometrico,
+                TipoRegistro = "ChecadorSede",
+                Estado = EstadoRegistroAsistencia.EntradaSinSalida,
+                CreatedAt = now,
+                IsActive = true
+            };
+            _context.RegistrosAsistencia.Add(existing);
+            await EvaluateTardinessAsync(existing, emp.Id, cancellationToken);
+            tipoReg = "Entrada";
+        }
+        else
+        {
+            existing.HoraSalida = now;
+            existing.Estado = EstadoRegistroAsistencia.Completo;
+            existing.UpdatedAt = now;
+            await EvaluateEarlyDepartureAndOvertimeAsync(existing, emp.Id, cancellationToken);
+            tipoReg = "Salida";
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        await _audit.LogEventoAsync("Asistencia", "ChecadorSede", "RegistroAsistencia", existing.Id, emp.Id.ToString(), $"Tipo: {tipoReg}, SedeId: {dto.SedeId}", cancellationToken);
+
+        var localTimeStr = now.ToLocalTime().ToString("HH:mm:ss");
+
+        return new ChecadorResultDto(
+            true, 
+            null, 
+            warning, 
+            nombreCompleto, 
+            cleanNumero, 
+            tipoReg, 
+            localTimeStr, 
+            turno.Nombre, 
+            $"{turno.HoraEntrada:hh\\:mm} - {turno.HoraSalida:hh\\:mm}"
+        );
     }
 }

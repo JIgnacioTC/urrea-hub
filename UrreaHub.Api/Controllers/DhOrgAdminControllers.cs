@@ -29,6 +29,14 @@ public class DhOrgAdminController : ControllerBase
     public Task<OrgItemDto> UpdateArea(Guid id, [FromBody] UpsertOrgItemDto dto, CancellationToken ct) =>
         _org.UpsertAreaAsync(id, dto, PerformedBy, ct);
 
+    [HttpPost("subareas")]
+    public Task<OrgSubareaDto> CreateSubarea([FromBody] UpsertSubareaDto dto, CancellationToken ct) =>
+        _org.UpsertSubareaAsync(null, dto, PerformedBy, ct);
+
+    [HttpPut("subareas/{id:guid}")]
+    public Task<OrgSubareaDto> UpdateSubarea(Guid id, [FromBody] UpsertSubareaDto dto, CancellationToken ct) =>
+        _org.UpsertSubareaAsync(id, dto, PerformedBy, ct);
+
     [HttpPost("departamentos")]
     public Task<OrgDepartamentoDto> CreateDepartamento([FromBody] UpsertDepartamentoDto dto, CancellationToken ct) =>
         _org.UpsertDepartamentoAsync(null, dto, PerformedBy, ct);
@@ -38,11 +46,11 @@ public class DhOrgAdminController : ControllerBase
         _org.UpsertDepartamentoAsync(id, dto, PerformedBy, ct);
 
     [HttpPost("puestos")]
-    public Task<OrgItemDto> CreatePuesto([FromBody] UpsertOrgItemDto dto, CancellationToken ct) =>
+    public Task<OrgPuestoDto> CreatePuesto([FromBody] UpsertPuestoDto dto, CancellationToken ct) =>
         _org.UpsertPuestoAsync(null, dto, PerformedBy, ct);
 
     [HttpPut("puestos/{id:guid}")]
-    public Task<OrgItemDto> UpdatePuesto(Guid id, [FromBody] UpsertOrgItemDto dto, CancellationToken ct) =>
+    public Task<OrgPuestoDto> UpdatePuesto(Guid id, [FromBody] UpsertPuestoDto dto, CancellationToken ct) =>
         _org.UpsertPuestoAsync(id, dto, PerformedBy, ct);
 
     [HttpPost("sedes")]
@@ -69,6 +77,48 @@ public class DhOrgAdminController : ControllerBase
     public async Task<IActionResult> AssignManager(Guid colaboradorId, [FromBody] AssignManagerDto dto, CancellationToken ct)
     {
         await _org.AssignManagerAsync(colaboradorId, dto, PerformedBy, ct);
+        return NoContent();
+    }
+
+    [HttpDelete("areas/{id:guid}")]
+    public async Task<IActionResult> DeleteArea(Guid id, CancellationToken ct)
+    {
+        await _org.DeleteAreaAsync(id, PerformedBy, ct);
+        return NoContent();
+    }
+
+    [HttpDelete("subareas/{id:guid}")]
+    public async Task<IActionResult> DeleteSubarea(Guid id, CancellationToken ct)
+    {
+        await _org.DeleteSubareaAsync(id, PerformedBy, ct);
+        return NoContent();
+    }
+
+    [HttpDelete("departamentos/{id:guid}")]
+    public async Task<IActionResult> DeleteDepartamento(Guid id, CancellationToken ct)
+    {
+        await _org.DeleteDepartamentoAsync(id, PerformedBy, ct);
+        return NoContent();
+    }
+
+    [HttpDelete("puestos/{id:guid}")]
+    public async Task<IActionResult> DeletePuesto(Guid id, CancellationToken ct)
+    {
+        await _org.DeletePuestoAsync(id, PerformedBy, ct);
+        return NoContent();
+    }
+
+    [HttpDelete("sedes/{id:guid}")]
+    public async Task<IActionResult> DeleteSede(Guid id, CancellationToken ct)
+    {
+        await _org.DeleteSedeAsync(id, PerformedBy, ct);
+        return NoContent();
+    }
+
+    [HttpDelete("centros-costo/{id:guid}")]
+    public async Task<IActionResult> DeleteCentroCosto(Guid id, CancellationToken ct)
+    {
+        await _org.DeleteCentroCostoAsync(id, PerformedBy, ct);
         return NoContent();
     }
 }

@@ -1,0 +1,12 @@
+.git
+**/bin/
+**/obj/
+node_modules/
+frontend/.next/
+frontend/out/
+**/.DS_Store
+**/appsettings.*.local.json
+**/secrets.json
+.env
+.env.local
+.env.*.local

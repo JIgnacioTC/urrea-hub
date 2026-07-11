@@ -10,6 +10,8 @@ interface TipoPermiso {
   nombre: string;
   webhookUrl?: string;
   areaDestinoId?: string;
+  notificarTeams?: boolean;
+  notificarCorreo?: boolean;
 }
 
 interface Area {
@@ -23,7 +25,12 @@ export function ConfiguracionPermisosView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{ webhookUrl: string; areaDestinoId: string }>({ webhookUrl: "", areaDestinoId: "" });
+  const [editForm, setEditForm] = useState<{ webhookUrl: string; areaDestinoId: string; notificarTeams: boolean; notificarCorreo: boolean }>({
+    webhookUrl: "",
+    areaDestinoId: "",
+    notificarTeams: false,
+    notificarCorreo: false,
+  });
 
   useEffect(() => {
     fetchData();
@@ -52,7 +59,9 @@ export function ConfiguracionPermisosView() {
     setEditingId(tipo.id);
     setEditForm({ 
       webhookUrl: tipo.webhookUrl || "", 
-      areaDestinoId: tipo.areaDestinoId || "" 
+      areaDestinoId: tipo.areaDestinoId || "",
+      notificarTeams: tipo.notificarTeams || false,
+      notificarCorreo: tipo.notificarCorreo || false
     });
   };
 
@@ -62,11 +71,19 @@ export function ConfiguracionPermisosView() {
         method: "PUT",
         body: JSON.stringify({
           webhookUrl: editForm.webhookUrl || null,
-          areaDestinoId: editForm.areaDestinoId || null
+          areaDestinoId: editForm.areaDestinoId || null,
+          notificarTeams: editForm.notificarTeams,
+          notificarCorreo: editForm.notificarCorreo
         })
       });
       
-      setTipos(tipos.map(t => t.id === id ? { ...t, webhookUrl: editForm.webhookUrl, areaDestinoId: editForm.areaDestinoId } : t));
+      setTipos(tipos.map(t => t.id === id ? { 
+        ...t, 
+        webhookUrl: editForm.webhookUrl, 
+        areaDestinoId: editForm.areaDestinoId,
+        notificarTeams: editForm.notificarTeams,
+        notificarCorreo: editForm.notificarCorreo
+      } : t));
       setEditingId(null);
     } catch (err: any) {
       alert(err.message);
@@ -99,6 +116,7 @@ export function ConfiguracionPermisosView() {
                   <th className="px-4 py-3">Tipo de Permiso</th>
                   <th className="px-4 py-3">Área de Ruteo</th>
                   <th className="px-4 py-3">Webhook (n8n)</th>
+                  <th className="px-4 py-3">Notificar</th>
                   <th className="px-4 py-3 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -139,6 +157,46 @@ export function ConfiguracionPermisosView() {
                         <span className="text-gray-500 truncate max-w-xs block">
                           {tipo.webhookUrl || "-"}
                         </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {editingId === tipo.id ? (
+                        <div className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-3">
+                          <label className="inline-flex items-center space-x-1.5 cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={editForm.notificarTeams} 
+                              onChange={(e) => setEditForm({ ...editForm, notificarTeams: e.target.checked })}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                            />
+                            <span className="text-xs text-gray-700">Teams</span>
+                          </label>
+                          <label className="inline-flex items-center space-x-1.5 cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={editForm.notificarCorreo} 
+                              onChange={(e) => setEditForm({ ...editForm, notificarCorreo: e.target.checked })}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                            />
+                            <span className="text-xs text-gray-700">Correo</span>
+                          </label>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {tipo.notificarTeams && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-150">
+                              Teams
+                            </span>
+                          )}
+                          {tipo.notificarCorreo && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-50 text-green-700 border border-green-150">
+                              Correo
+                            </span>
+                          )}
+                          {!tipo.notificarTeams && !tipo.notificarCorreo && (
+                            <span className="text-gray-400 text-xs">—</span>
+                          )}
+                        </div>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">

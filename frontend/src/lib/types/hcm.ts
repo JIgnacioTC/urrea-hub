@@ -27,6 +27,7 @@ export interface EmployeeListItem {
   preferredName?: string;
   position: string;
   department: string;
+  subarea?: string;
   area?: string;
   costCenter?: string;
   managerName?: string;
@@ -39,6 +40,8 @@ export interface EmployeeListItem {
   syncStatus: string;
   lastSyncAt?: string;
   isManualOverride: boolean;
+  esCuentaGenerica: boolean;
+  puedenChecarRemotamente: boolean;
 }
 
 export interface EmployeeDetail {
@@ -55,6 +58,7 @@ export interface EmployeeDetail {
   terminationDate?: string;
   position: string;
   department: string;
+  subarea?: string;
   area?: string;
   location?: string;
   costCenter?: string;
@@ -66,6 +70,8 @@ export interface EmployeeDetail {
   syncStatus: string;
   lastSyncAt?: string;
   isManualOverride: boolean;
+  esCuentaGenerica: boolean;
+  puedenChecarRemotamente: boolean;
   personal?: {
     rfc?: string;
     curp?: string;
@@ -95,6 +101,7 @@ export interface EmployeeOrganization {
   managerEmployeeNumber?: string;
   departmentId: string;
   department: string;
+  subarea?: string;
   area?: string;
   locationId?: string;
   location?: string;
@@ -177,4 +184,6 @@ export interface HcmDataQualityReport {
 export interface EmployeeUpdatePayload {
   preferredName?: string;
   phone?: string;
+  esCuentaGenerica?: boolean;
+  puedenChecarRemotamente?: boolean;
 }

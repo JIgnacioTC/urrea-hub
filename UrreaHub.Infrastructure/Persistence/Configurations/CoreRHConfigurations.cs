@@ -53,6 +53,11 @@ public class PuestoConfiguration : IEntityTypeConfiguration<Puesto>
         builder.ToTable("Puestos", "CoreRH");
         builder.HasIndex(p => p.Codigo).IsUnique();
         builder.Property(p => p.Nombre).HasMaxLength(150).IsRequired();
+        builder.Property(p => p.PresupuestoAnual).HasPrecision(18, 2);
+        builder.Property(p => p.Impacto).HasMaxLength(100);
+        builder.Property(p => p.Comunicacion).HasMaxLength(100);
+        builder.Property(p => p.Innovacion).HasMaxLength(100);
+        builder.Property(p => p.EducacionRequerida).HasMaxLength(100);
     }
 }
 
@@ -65,12 +70,29 @@ public class AreaConfiguration : IEntityTypeConfiguration<Area>
     }
 }
 
+public class SubareaConfiguration : IEntityTypeConfiguration<Subarea>
+{
+    public void Configure(EntityTypeBuilder<Subarea> builder)
+    {
+        builder.ToTable("Subareas", "CoreRH");
+        builder.HasIndex(s => s.Codigo).IsUnique();
+        builder.HasOne(s => s.Area)
+            .WithMany(a => a.Subareas)
+            .HasForeignKey(s => s.AreaId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
 public class DepartamentoConfiguration : IEntityTypeConfiguration<Departamento>
 {
     public void Configure(EntityTypeBuilder<Departamento> builder)
     {
         builder.ToTable("Departamentos", "CoreRH");
         builder.HasIndex(d => d.Codigo).IsUnique();
+        builder.HasOne(d => d.Subarea)
+            .WithMany(s => s.Departamentos)
+            .HasForeignKey(d => d.SubareaId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 

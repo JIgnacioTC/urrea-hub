@@ -30,3 +30,10 @@ public class MetadatoPlataforma : BaseEntity
     public string? MigracionId { get; set; }
     public Guid? CreadoPorColaboradorId { get; set; }
 }
+
+public class ConfiguracionGlobal : BaseEntity
+{
+    public string Clave { get; set; } = string.Empty;
+    public string Valor { get; set; } = string.Empty;
+    public string? Descripcion { get; set; }
+}

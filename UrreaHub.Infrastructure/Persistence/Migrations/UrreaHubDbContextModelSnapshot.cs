@@ -1989,6 +1989,9 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<bool>("EsCuentaGenerica")
+                        .HasColumnType("bit");
+
                     b.Property<string>("ExternalEmployeeId")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -2031,6 +2034,9 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                     b.Property<string>("NumeroEmpleado")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("PuedenChecarRemotamente")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("PuestoId")
                         .HasColumnType("uniqueidentifier");
@@ -2254,9 +2260,6 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("AreaId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Codigo")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -2279,17 +2282,20 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("SedeId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("SubareaId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AreaId");
-
                     b.HasIndex("Codigo")
                         .IsUnique();
 
                     b.HasIndex("SedeId");
+
+                    b.HasIndex("SubareaId");
 
                     b.ToTable("Departamentos", "CoreRH");
                 });
@@ -2358,6 +2364,10 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("Comunicacion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -2365,6 +2375,24 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Descripcion")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EducacionRequerida")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("ExperienciaAnios")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GradoMercer")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Impacto")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Innovacion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -2376,6 +2404,16 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<int?>("PersonalCargoDirecto")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PersonalCargoIndirecto")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("PresupuestoAnual")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -2464,6 +2502,47 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Sedes", "CoreRH");
+                });
+
+            modelBuilder.Entity("UrreaHub.Domain.CoreRH.Subarea", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AreaId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AreaId");
+
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
+                    b.ToTable("Subareas", "CoreRH");
                 });
 
             modelBuilder.Entity("UrreaHub.Domain.Desempeno.CicloDesempeno", b =>
@@ -3444,6 +3523,44 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                     b.HasIndex("PosicionId");
 
                     b.ToTable("Vacantes", "Organizacion");
+                });
+
+            modelBuilder.Entity("UrreaHub.Domain.Plataforma.ConfiguracionGlobal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Clave")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Valor")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Clave")
+                        .IsUnique();
+
+                    b.ToTable("ConfiguracionesGlobales", "Plataforma");
                 });
 
             modelBuilder.Entity("UrreaHub.Domain.Plataforma.MetadatoPlataforma", b =>
@@ -4773,10 +4890,19 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("NotificarCorreo")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("NotificarTeams")
+                        .HasColumnType("bit");
+
                     b.Property<int>("Orden")
                         .HasColumnType("int");
 
                     b.Property<bool>("PermiteMultiDia")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("PermiteSolicitudEmpleado")
                         .HasColumnType("bit");
 
                     b.Property<bool>("Remunerado")
@@ -5259,19 +5385,19 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("UrreaHub.Domain.CoreRH.Departamento", b =>
                 {
-                    b.HasOne("UrreaHub.Domain.CoreRH.Area", "Area")
-                        .WithMany("Departamentos")
-                        .HasForeignKey("AreaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("UrreaHub.Domain.CoreRH.Sede", "Sede")
                         .WithMany("Departamentos")
                         .HasForeignKey("SedeId");
 
-                    b.Navigation("Area");
+                    b.HasOne("UrreaHub.Domain.CoreRH.Subarea", "Subarea")
+                        .WithMany("Departamentos")
+                        .HasForeignKey("SubareaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Sede");
+
+                    b.Navigation("Subarea");
                 });
 
             modelBuilder.Entity("UrreaHub.Domain.CoreRH.MovimientoColaborador", b =>
@@ -5283,6 +5409,17 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Colaborador");
+                });
+
+            modelBuilder.Entity("UrreaHub.Domain.CoreRH.Subarea", b =>
+                {
+                    b.HasOne("UrreaHub.Domain.CoreRH.Area", "Area")
+                        .WithMany("Subareas")
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Area");
                 });
 
             modelBuilder.Entity("UrreaHub.Domain.Desempeno.EvaluacionDesempeno", b =>
@@ -5985,7 +6122,7 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("UrreaHub.Domain.CoreRH.Area", b =>
                 {
-                    b.Navigation("Departamentos");
+                    b.Navigation("Subareas");
                 });
 
             modelBuilder.Entity("UrreaHub.Domain.CoreRH.CentroCosto", b =>
@@ -6025,6 +6162,11 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                 {
                     b.Navigation("Colaboradores");
 
+                    b.Navigation("Departamentos");
+                });
+
+            modelBuilder.Entity("UrreaHub.Domain.CoreRH.Subarea", b =>
+                {
                     b.Navigation("Departamentos");
                 });
 

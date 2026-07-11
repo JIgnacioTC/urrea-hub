@@ -58,6 +58,7 @@ export interface TipoAusencia {
   descripcion?: string;
   icono?: string;
   orden?: number;
+  permiteSolicitudEmpleado?: boolean;
 }
 
 export interface ResumenTipoPermiso {

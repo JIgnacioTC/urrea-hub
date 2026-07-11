@@ -8,5 +8,5 @@ public class Area : BaseEntity
     public string Nombre { get; set; } = string.Empty;
     public string? Descripcion { get; set; }
 
-    public ICollection<Departamento> Departamentos { get; set; } = new List<Departamento>();
+    public ICollection<Subarea> Subareas { get; set; } = new List<Subarea>();
 }

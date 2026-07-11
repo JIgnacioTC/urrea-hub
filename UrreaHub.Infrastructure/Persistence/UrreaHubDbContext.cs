@@ -29,6 +29,7 @@ public class UrreaHubDbContext : DbContext
     public DbSet<Colaborador> Colaboradores => Set<Colaborador>();
     public DbSet<Puesto> Puestos => Set<Puesto>();
     public DbSet<Area> Areas => Set<Area>();
+    public DbSet<Subarea> Subareas => Set<Subarea>();
     public DbSet<Departamento> Departamentos => Set<Departamento>();
     public DbSet<Sede> Sedes => Set<Sede>();
     public DbSet<CentroCosto> CentrosCosto => Set<CentroCosto>();
@@ -155,6 +156,7 @@ public class UrreaHubDbContext : DbContext
     public DbSet<ContenidoModuloPortal> ContenidosModuloPortal => Set<ContenidoModuloPortal>();
 
     public DbSet<MetadatoPlataforma> MetadatosPlataforma => Set<MetadatoPlataforma>();
+    public DbSet<ConfiguracionGlobal> ConfiguracionesGlobales => Set<ConfiguracionGlobal>();
 
     // Auditoría
     public DbSet<BitacoraEvento> BitacoraEventos => Set<BitacoraEvento>();

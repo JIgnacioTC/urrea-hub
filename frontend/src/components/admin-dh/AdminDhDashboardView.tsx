@@ -5,6 +5,7 @@ import { PageContainer, PageHeader } from "@/components/ui/page-header";
 
 const LINKS = [
   { href: "/admin-dh/asistencia", title: "Monitor de asistencia", desc: "KPIs del día, registros e incidencias operativas." },
+  { href: "/admin-dh/asistencia/permisos-remotos", title: "Permisos de checado remoto", desc: "Define qué colaboradores pueden registrar asistencia remotamente." },
   { href: "/admin-dh/onboarding", title: "Monitor de onboarding", desc: "Planes activos, avance y tareas vencidas." },
   { href: "/admin-dh/asistencia/nomina", title: "Prenómina de asistencia", desc: "Generar corte y enviar incidencias a nómina." },
   { href: "/admin-dh/organizacion/jefes", title: "Asignación de jefes", desc: "Administra la relación jefe directo por colaborador." },
@@ -12,7 +13,8 @@ const LINKS = [
   { href: "/admin-dh/vacaciones/saldos", title: "Saldos de vacaciones", desc: "Recalcular y ajustar saldos con motivo." },
   { href: "/admin-dh/vacaciones/politicas", title: "Políticas de vacaciones", desc: "Días anuales, antigüedad y acumulación." },
   { href: "/admin-dh/organizacion/areas", title: "Áreas", desc: "Catálogo de áreas organizacionales." },
-  { href: "/admin-dh/organizacion/departamentos", title: "Departamentos", desc: "Departamentos por área y sede." },
+  { href: "/admin-dh/organizacion/subareas", title: "Subáreas", desc: "Catálogo de subáreas organizacionales por área." },
+  { href: "/admin-dh/organizacion/departamentos", title: "Departamentos", desc: "Departamentos por subárea y sede." },
   { href: "/admin-dh/organizacion/puestos", title: "Puestos", desc: "Puestos y niveles jerárquicos." },
   { href: "/admin-dh/organizacion/sedes", title: "Sedes", desc: "Ubicaciones físicas." },
   { href: "/admin-dh/organizacion/centros-costo", title: "Centros de costo", desc: "Centros de costo contables." },

@@ -111,6 +111,7 @@ public class AbsenceAdminService : IAbsenceAdminService
         entity.Descripcion = dto.Descripcion;
         entity.Icono = dto.Icono;
         entity.Orden = dto.Orden;
+        entity.PermiteSolicitudEmpleado = dto.PermiteSolicitudEmpleado;
         entity.IsActive = dto.IsActive;
         entity.UpdatedAt = DateTime.UtcNow;
 
@@ -283,7 +284,7 @@ public class AbsenceAdminService : IAbsenceAdminService
         CancellationToken cancellationToken = default)
     {
         var query = _context.SolicitudesAusencia.AsNoTracking()
-            .Include(s => s.Colaborador).ThenInclude(c => c.Departamento).ThenInclude(d => d.Area)
+            .Include(s => s.Colaborador).ThenInclude(c => c.Departamento).ThenInclude(d => d.Subarea).ThenInclude(s => s.Area)
             .Include(s => s.TipoAusencia)
             .Include(s => s.Aprobaciones).ThenInclude(a => a.Aprobador)
             .Where(s => s.IsActive);
@@ -307,7 +308,7 @@ public class AbsenceAdminService : IAbsenceAdminService
             s.Colaborador.NumeroEmpleado,
             s.Colaborador.Nombre + " " + s.Colaborador.ApellidoPaterno,
             s.Colaborador.Departamento.Nombre,
-            s.Colaborador.Departamento.Area.Nombre,
+            s.Colaborador.Departamento.Subarea != null ? s.Colaborador.Departamento.Subarea.Area.Nombre : null,
             s.TipoAusencia.Nombre,
             s.FechaInicio,
             s.FechaFin,
@@ -366,7 +367,17 @@ public class AbsenceAdminService : IAbsenceAdminService
     private static TipoAusenciaDto MapTipo(TipoAusencia t) => new(
         t.Id, t.Codigo, t.Nombre, t.DescuentaSaldo, t.RequiereAprobacion, t.Color,
         t.Categoria, t.EsParcial, t.PermiteMultiDia, t.DiasMaximosAnuales, t.DiasMaximosEvento,
-        t.RequiereComprobante, t.Remunerado, t.BaseLegalLft, t.Descripcion, t.Icono, t.Orden);
+        t.RequiereComprobante, t.Remunerado, t.BaseLegalLft, t.Descripcion, t.Icono, t.Orden,
+        t.PermiteSolicitudEmpleado);
+
+    public async Task DeleteTypeAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.TiposAusencia.FirstOrDefaultAsync(t => t.Id == id, cancellationToken)
+            ?? throw new InvalidOperationException("Tipo de ausencia no encontrado.");
+        entity.IsActive = false;
+        entity.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 
     private static CalendarioLaboralDto MapCalendario(CalendarioLaboral c) => new(
         c.Id, c.Nombre, c.Anio, c.SedeId, c.Sede?.Nombre, c.IsActive,
