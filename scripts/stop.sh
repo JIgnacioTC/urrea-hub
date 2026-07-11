@@ -45,7 +45,7 @@ stop_process "API" "$API_PID_FILE"
 stop_process "Frontend" "$FRONTEND_PID_FILE"
 
 if command -v docker >/dev/null 2>&1; then
-  echo "==> Deteniendo contenedor SQL..."
+  echo "==> Deteniendo contenedor Postgres..."
   cd "$ROOT_DIR"
   docker compose stop >/dev/null 2>&1 || true
 fi

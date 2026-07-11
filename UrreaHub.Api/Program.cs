@@ -9,6 +9,11 @@ using UrreaHub.Infrastructure;
 using UrreaHub.Infrastructure.Persistence;
 using UrreaHub.Infrastructure.Services;
 
+// El dominio usa DateTime "naive" (equivalente al datetime2 de SQL Server, sin zona horaria).
+// Npgsql 6+ exige que Kind coincida exactamente con el tipo de columna por default; este switch
+// restaura el comportamiento previo y evita tener que normalizar Kind en cada punto del código.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("UrreaHubDb")
@@ -102,6 +107,7 @@ using (var scope = app.Services.CreateScope())
 
     var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
     await DbSeeder.SeedAsync(db, hasher);
+    await MegaEmployeeSeed.SeedAsync(db);
     await SecuritySeed.SeedAsync(db);
     await CatalogSeed.SeedAsync(db);
     await TiPlatformSeed.SeedAsync(db);

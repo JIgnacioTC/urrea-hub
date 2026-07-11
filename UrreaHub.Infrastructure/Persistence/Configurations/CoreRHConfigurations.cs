@@ -13,7 +13,7 @@ public class ColaboradorConfiguration : IEntityTypeConfiguration<Colaborador>
         builder.HasIndex(c => c.Email).IsUnique();
         builder.HasIndex(c => new { c.ExternalSource, c.ExternalEmployeeId })
             .IsUnique()
-            .HasFilter("[ExternalSource] IS NOT NULL AND [ExternalEmployeeId] IS NOT NULL");
+            .HasFilter("\"ExternalSource\" IS NOT NULL AND \"ExternalEmployeeId\" IS NOT NULL");
         builder.Property(c => c.Nombre).HasMaxLength(100).IsRequired();
         builder.Property(c => c.ApellidoPaterno).HasMaxLength(100).IsRequired();
         builder.Property(c => c.Email).HasMaxLength(200).IsRequired();
@@ -129,7 +129,7 @@ public class ColaboradorDatosSensiblesConfiguration : IEntityTypeConfiguration<C
     {
         builder.ToTable("ColaboradoresDatosSensibles", "CoreRH");
         builder.HasIndex(d => d.ColaboradorId).IsUnique();
-        builder.HasIndex(d => d.Rfc).IsUnique().HasFilter("[Rfc] IS NOT NULL");
+        builder.HasIndex(d => d.Rfc).IsUnique().HasFilter("\"Rfc\" IS NOT NULL");
         builder.Property(d => d.Rfc).HasMaxLength(20);
         builder.Property(d => d.Curp).HasMaxLength(30);
         builder.Property(d => d.Nss).HasMaxLength(30);
