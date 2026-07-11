@@ -1,5 +1,5 @@
-import { MisHorariosView } from "@/components/asistencia/MisHorariosView";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return <MisHorariosView />;
+export default function HorariosPage() {
+  redirect("/portal/asistencia");
 }

@@ -31,6 +31,19 @@ export interface PendingApproval extends SolicitudAusencia {
   saldoDisponible?: number;
   saldoPosterior?: number;
   traslapesEquipo: string[];
+  nivelActual: NivelAprobacionAusencia;
+}
+
+export type NivelAprobacionAusencia = "Jefe" | "DH" | "Nominas";
+
+export interface PasoAprobacion {
+  orden: number;
+  nivel: NivelAprobacionAusencia;
+  nivelLabel: string;
+  estado: string;
+  aprobadorNombre?: string | null;
+  comentario?: string | null;
+  fechaDecision?: string | null;
 }
 
 export interface TeamCalendar {
@@ -59,6 +72,9 @@ export interface TipoAusencia {
   icono?: string;
   orden?: number;
   permiteSolicitudEmpleado?: boolean;
+  requiereAprobacionJefe?: boolean;
+  requiereAprobacionDH?: boolean;
+  requiereAprobacionNominas?: boolean;
 }
 
 export interface ResumenTipoPermiso {
@@ -87,6 +103,7 @@ export interface SolicitudAusencia {
   esDiaCompleto?: boolean;
   horaInicio?: string | null;
   horaFin?: string | null;
+  pasosAprobacion?: PasoAprobacion[];
 }
 
 export interface ColaboradorPerfil {
@@ -315,6 +332,22 @@ export interface FeedPost {
   shares: number;
   createdAt: string;
   type: "announcement" | "recognition" | "event" | "general";
+  likedByMe: boolean;
+  isOwnPost: boolean;
+}
+
+export interface FeedComment {
+  id: string;
+  authorName: string;
+  authorInitials: string;
+  content: string;
+  createdAt: string;
+  isOwnComment: boolean;
+}
+
+export interface ToggleReaccionResult {
+  liked: boolean;
+  totalLikes: number;
 }
 
 export interface DocumentoCorporativo {

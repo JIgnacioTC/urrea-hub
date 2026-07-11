@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using UrreaHub.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using UrreaHub.Infrastructure.Persistence;
 namespace UrreaHub.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(UrreaHubDbContext))]
-    partial class UrreaHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711201721_AddFeedSocialPortal")]
+    partial class AddFeedSocialPortal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4603,7 +4606,7 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("AprobadorId")
+                    b.Property<Guid>("AprobadorId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Comentario")
@@ -4617,17 +4620,11 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                     b.Property<int>("Decision")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("FechaDecision")
+                    b.Property<DateTime>("FechaDecision")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
-
-                    b.Property<int>("Nivel")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Orden")
-                        .HasColumnType("integer");
 
                     b.Property<Guid>("SolicitudId")
                         .HasColumnType("uuid");
@@ -4991,15 +4988,6 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool>("RequiereAprobacion")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("RequiereAprobacionDH")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("RequiereAprobacionJefe")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("RequiereAprobacionNominas")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("RequiereComprobante")
@@ -6090,7 +6078,9 @@ namespace UrreaHub.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("UrreaHub.Domain.CoreRH.Colaborador", "Aprobador")
                         .WithMany()
-                        .HasForeignKey("AprobadorId");
+                        .HasForeignKey("AprobadorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("UrreaHub.Domain.Vacaciones.SolicitudAusencia", "Solicitud")
                         .WithMany("Aprobaciones")

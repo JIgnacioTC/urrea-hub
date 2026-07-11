@@ -15,7 +15,23 @@ public record FeedPostDto(
     int Comments,
     int Shares,
     DateTime CreatedAt,
-    string Type);
+    string Type,
+    bool LikedByMe,
+    bool IsOwnPost);
+
+public record CrearPublicacionDto(string Contenido, string? GradienteImagen, TipoPublicacionPortal Tipo);
+
+public record ComentarioDto(
+    Guid Id,
+    string AuthorName,
+    string AuthorInitials,
+    string Content,
+    DateTime CreatedAt,
+    bool IsOwnComment);
+
+public record CrearComentarioDto(string Contenido);
+
+public record ToggleReaccionResultDto(bool Liked, int TotalLikes);
 
 public record DocumentoCorporativoDto(
     Guid Id,
@@ -148,7 +164,12 @@ public record UpsertModuloDto(
 
 public interface IPortalContentService
 {
-    Task<IReadOnlyList<FeedPostDto>> GetFeedAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<FeedPostDto>> GetFeedAsync(Guid colaboradorId, CancellationToken cancellationToken = default);
+    Task<Result<FeedPostDto>> CrearPublicacionAsync(Guid colaboradorId, CrearPublicacionDto dto, CancellationToken cancellationToken = default);
+    Task<Result<bool>> EliminarPublicacionPropiaAsync(Guid colaboradorId, Guid publicacionId, CancellationToken cancellationToken = default);
+    Task<Result<ToggleReaccionResultDto>> ToggleReaccionAsync(Guid colaboradorId, Guid publicacionId, CancellationToken cancellationToken = default);
+    Task<Result<IReadOnlyList<ComentarioDto>>> GetComentariosAsync(Guid colaboradorId, Guid publicacionId, CancellationToken cancellationToken = default);
+    Task<Result<ComentarioDto>> CrearComentarioAsync(Guid colaboradorId, Guid publicacionId, CrearComentarioDto dto, CancellationToken cancellationToken = default);
     Task<BeneficiosCatalogoDto> GetBeneficiosCatalogoAsync(int? anioFestivos, CancellationToken cancellationToken = default);
     Task<SaldoPuntosDto> GetSaldoPuntosAsync(Guid colaboradorId, CancellationToken cancellationToken = default);
     Task<Result<CanjeTiendaResultDto>> CanjearProductoAsync(Guid colaboradorId, Guid productoId, CancellationToken cancellationToken = default);

@@ -15,6 +15,7 @@ public static class SecuritySeed
         (AppPermissions.HcmReadSensitive, "HCM", "Datos sensibles HCM"),
         (AppPermissions.HcmReadSalary, "HCM", "Compensación HCM"),
         (AppPermissions.VacationsApprove, "Vacaciones", "Aprobar vacaciones"),
+        (AppPermissions.VacationsApprovePayroll, "Vacaciones", "Aprobar solicitudes (nivel nómina)"),
         (AppPermissions.AttendanceValidate, "Asistencia", "Validar asistencia"),
         (AppPermissions.AttendanceRead, "Asistencia", "Consultar asistencia"),
         (AppPermissions.AttendanceCheckIn, "Asistencia", "Registrar entrada"),
@@ -66,6 +67,7 @@ public static class SecuritySeed
         (AppRoles.Jefe, "Jefe de equipo", "Gestión de subordinados directos"),
         (AppRoles.RhAdmin, "Administrador RH", "Administración de recursos humanos"),
         (AppRoles.TiAdmin, "Administrador TI", "Administración de plataforma y metadatos"),
+        (AppRoles.NominaAdmin, "Administrador de Nómina", "Aprobación de solicitudes en el nivel de nómina"),
     };
 
     public static async Task SeedAsync(UrreaHubDbContext context)

@@ -93,14 +93,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-urrea-text-muted">
-            Demo:{" "}
-            <Link href="/login" className="text-urrea-secondary underline-offset-2 hover:underline">
-              maria.lopez@urrea.com
-            </Link>{" "}
-            / Urrea2026!
-          </p>
-          <p className="mt-3 text-center text-xs">
+          <p className="mt-6 text-center text-xs">
             <Link href="/dh" className="text-sm font-medium text-urrea-primary underline-offset-2 hover:underline">
               Acceder al Centro Integral de Desarrollo Humano
             </Link>

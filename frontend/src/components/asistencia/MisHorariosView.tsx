@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, StatCard } from "@/components/ui/card";
 import { Input, Textarea, Select } from "@/components/ui/input";
-import { Alert, PageContainer, PageHeader } from "@/components/ui/page-header";
+import { Alert } from "@/components/ui/page-header";
 import {
   attendanceService,
   type AsignacionTurno,
@@ -18,7 +18,7 @@ function fmtShiftTime(t?: string) {
   return `${parts[0]}:${parts[1]}`;
 }
 
-export function MisHorariosView() {
+export function HorariosTabContent() {
   const [shifts, setShifts] = useState<AsignacionTurno[]>([]);
   const [availableShifts, setAvailableShifts] = useState<Turno[]>([]);
   const [requests, setRequests] = useState<SolicitudCambioHorario[]>([]);
@@ -99,12 +99,7 @@ export function MisHorariosView() {
   };
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="Mis Horarios"
-        subtitle="Consulta tu turno activo, historial de asignaciones y solicita cambios de horario."
-      />
-
+    <div className="space-y-6">
       {error && <Alert variant="error">{error}</Alert>}
       {successMsg && <Alert variant="success">{successMsg}</Alert>}
 
@@ -314,6 +309,6 @@ export function MisHorariosView() {
           )}
         </Card>
       )}
-    </PageContainer>
+    </div>
   );
 }

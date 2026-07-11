@@ -6,11 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/input";
 import { Alert, PageContainer, PageHeader } from "@/components/ui/page-header";
+import { AprobacionStepper } from "@/components/vacaciones/AprobacionStepper";
 import { absenceService } from "@/lib/services/absenceService";
-import type { SolicitudAusencia } from "@/lib/types";
+import type { PendingApproval } from "@/lib/types";
+
+const NIVEL_LABELS: Record<string, string> = {
+  Jefe: "Nivel: Jefe directo",
+  DH: "Nivel: Desarrollo Humano",
+  Nominas: "Nivel: Nóminas",
+};
 
 export default function AprobacionesPage() {
-  const [pendientes, setPendientes] = useState<SolicitudAusencia[]>([]);
+  const [pendientes, setPendientes] = useState<PendingApproval[]>([]);
   const [comentario, setComentario] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
 
@@ -47,14 +54,26 @@ export default function AprobacionesPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="font-semibold text-urrea-text">{s.colaboradorNombre}</p>
-                <p className="text-sm text-urrea-text-muted">{s.tipoAusenciaNombre} · {s.diasSolicitados} días</p>
+                <p className="text-sm text-urrea-text-muted">
+                  {s.tipoAusenciaNombre} · {s.diasSolicitados} días{s.puesto ? ` · ${s.puesto}` : ""}
+                </p>
                 <p className="mt-1 text-sm text-urrea-text-muted">
                   {new Date(s.fechaInicio).toLocaleDateString("es-MX")} – {new Date(s.fechaFin).toLocaleDateString("es-MX")}
                 </p>
                 {s.comentario && <p className="mt-2 text-sm italic text-urrea-text-muted">&quot;{s.comentario}&quot;</p>}
               </div>
-              <Badge estado={s.estado} />
+              <div className="flex flex-col items-end gap-1">
+                <Badge estado={s.estado} />
+                {s.nivelActual && (
+                  <span className="text-[11px] font-medium text-urrea-text-muted">{NIVEL_LABELS[s.nivelActual] ?? s.nivelActual}</span>
+                )}
+              </div>
             </div>
+            {s.pasosAprobacion && s.pasosAprobacion.length > 1 && (
+              <div className="mt-3">
+                <AprobacionStepper pasos={s.pasosAprobacion} compact />
+              </div>
+            )}
             <Textarea
               placeholder="Comentario (opcional)"
               value={comentario[s.id] ?? ""}

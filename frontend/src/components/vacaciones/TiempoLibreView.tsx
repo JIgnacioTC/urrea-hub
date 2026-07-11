@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { DhIcon } from "@/components/dh/shared/icons";
+import { AprobacionStepper } from "@/components/vacaciones/AprobacionStepper";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, StatCard } from "@/components/ui/card";
@@ -390,6 +391,11 @@ export function TiempoLibreView() {
                         <p className="mt-1 text-sm text-urrea-text-muted">
                           {formatPeriodo(s)} · {s.diasSolicitados} día{s.diasSolicitados === 1 ? "" : "s"}
                         </p>
+                        {s.pasosAprobacion && s.pasosAprobacion.length > 0 && (
+                          <div className="mt-3">
+                            <AprobacionStepper pasos={s.pasosAprobacion} compact />
+                          </div>
+                        )}
                         {s.comentario && (
                           <p className="mt-2 text-xs text-urrea-text-muted">{s.comentario}</p>
                         )}

@@ -198,6 +198,9 @@ const emptyTypeForm = {
   nombre: "",
   descuentaSaldo: false,
   requiereAprobacion: true,
+  requiereAprobacionJefe: true,
+  requiereAprobacionDH: false,
+  requiereAprobacionNominas: false,
   color: "#3b82f6",
   categoria: "PermisoDiaCompleto",
   esParcial: false,
@@ -252,6 +255,9 @@ export function AdminTiposAusenciaView() {
       nombre: item.nombre,
       descuentaSaldo: item.descuentaSaldo,
       requiereAprobacion: item.requiereAprobacion,
+      requiereAprobacionJefe: item.requiereAprobacionJefe ?? true,
+      requiereAprobacionDH: item.requiereAprobacionDH ?? false,
+      requiereAprobacionNominas: item.requiereAprobacionNominas ?? false,
       color: item.color ?? "#3b82f6",
       categoria: item.categoria ?? "PermisoDiaCompleto",
       esParcial: item.esParcial ?? false,
@@ -294,6 +300,9 @@ export function AdminTiposAusenciaView() {
         nombre: form.nombre.trim(),
         descuentaSaldo: form.descuentaSaldo,
         requiereAprobacion: form.requiereAprobacion,
+        requiereAprobacionJefe: form.requiereAprobacionJefe,
+        requiereAprobacionDH: form.requiereAprobacionDH,
+        requiereAprobacionNominas: form.requiereAprobacionNominas,
         color: form.color || undefined,
         categoria: form.categoria,
         esParcial: form.esParcial,
@@ -528,9 +537,44 @@ export function AdminTiposAusenciaView() {
                   />
                   <div>
                     <span className="block font-medium">Requiere aprobación</span>
-                    <span className="text-xs text-slate-400">Pasa por el flujo de jefes</span>
+                    <span className="text-xs text-slate-400">Activa el flujo de aprobación por niveles</span>
                   </div>
                 </label>
+
+                {form.requiereAprobacion && (
+                  <div className="col-span-full rounded-lg border border-slate-150 bg-slate-50/60 p-3">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Niveles de aprobación</p>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      <label className="flex items-center gap-2 rounded-lg border border-slate-150 bg-white p-2.5 text-sm hover:bg-slate-50">
+                        <input
+                          type="checkbox"
+                          checked={form.requiereAprobacionJefe}
+                          onChange={(e) => setForm({ ...form, requiereAprobacionJefe: e.target.checked })}
+                        />
+                        <span className="font-medium">Jefe directo</span>
+                      </label>
+                      <label className="flex items-center gap-2 rounded-lg border border-slate-150 bg-white p-2.5 text-sm hover:bg-slate-50">
+                        <input
+                          type="checkbox"
+                          checked={form.requiereAprobacionDH}
+                          onChange={(e) => setForm({ ...form, requiereAprobacionDH: e.target.checked })}
+                        />
+                        <span className="font-medium">Desarrollo Humano</span>
+                      </label>
+                      <label className="flex items-center gap-2 rounded-lg border border-slate-150 bg-white p-2.5 text-sm hover:bg-slate-50">
+                        <input
+                          type="checkbox"
+                          checked={form.requiereAprobacionNominas}
+                          onChange={(e) => setForm({ ...form, requiereAprobacionNominas: e.target.checked })}
+                        />
+                        <span className="font-medium">Nóminas</span>
+                      </label>
+                    </div>
+                    <p className="mt-2 text-xs text-slate-400">
+                      La solicitud avanza en este orden. Si no marcas ningún nivel, se usa Jefe directo por defecto.
+                    </p>
+                  </div>
+                )}
 
                 <label className="flex items-center gap-2 rounded-lg border border-slate-150 p-2.5 text-sm hover:bg-slate-50">
                   <input

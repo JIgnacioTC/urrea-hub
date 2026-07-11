@@ -38,7 +38,10 @@ public record UpsertTipoAusenciaDto(
     string? Icono,
     int Orden,
     bool PermiteSolicitudEmpleado = true,
-    bool IsActive = true);
+    bool IsActive = true,
+    bool RequiereAprobacionJefe = true,
+    bool RequiereAprobacionDH = false,
+    bool RequiereAprobacionNominas = false);
 
 public record CalendarioLaboralDto(
     Guid Id,

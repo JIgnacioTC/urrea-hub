@@ -112,6 +112,9 @@ public class AbsenceAdminService : IAbsenceAdminService
         entity.Icono = dto.Icono;
         entity.Orden = dto.Orden;
         entity.PermiteSolicitudEmpleado = dto.PermiteSolicitudEmpleado;
+        entity.RequiereAprobacionJefe = dto.RequiereAprobacionJefe;
+        entity.RequiereAprobacionDH = dto.RequiereAprobacionDH;
+        entity.RequiereAprobacionNominas = dto.RequiereAprobacionNominas;
         entity.IsActive = dto.IsActive;
         entity.UpdatedAt = DateTime.UtcNow;
 
@@ -315,7 +318,7 @@ public class AbsenceAdminService : IAbsenceAdminService
             s.DiasSolicitados,
             s.Estado,
             s.CreatedAt,
-            s.Aprobaciones.OrderByDescending(a => a.FechaDecision).Select(a => a.Aprobador.Nombre).FirstOrDefault()
+            s.Aprobaciones.OrderByDescending(a => a.FechaDecision).Select(a => a.Aprobador == null ? null : a.Aprobador.Nombre).FirstOrDefault()
         )).ToListAsync(cancellationToken);
     }
 
@@ -368,7 +371,7 @@ public class AbsenceAdminService : IAbsenceAdminService
         t.Id, t.Codigo, t.Nombre, t.DescuentaSaldo, t.RequiereAprobacion, t.Color,
         t.Categoria, t.EsParcial, t.PermiteMultiDia, t.DiasMaximosAnuales, t.DiasMaximosEvento,
         t.RequiereComprobante, t.Remunerado, t.BaseLegalLft, t.Descripcion, t.Icono, t.Orden,
-        t.PermiteSolicitudEmpleado);
+        t.PermiteSolicitudEmpleado, t.RequiereAprobacionJefe, t.RequiereAprobacionDH, t.RequiereAprobacionNominas);
 
     public async Task DeleteTypeAsync(Guid id, CancellationToken cancellationToken = default)
     {

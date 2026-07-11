@@ -68,6 +68,7 @@ public class CurrentUser : ICurrentUser
     public bool IsRhAdmin => Roles.Contains(AppRoles.RhAdmin);
     public bool IsTiAdmin => Roles.Contains(AppRoles.TiAdmin) || IsRhAdmin;
     public bool IsJefe => Roles.Contains(AppRoles.Jefe) || IsRhAdmin;
+    public bool IsNominaAdmin => Roles.Contains(AppRoles.NominaAdmin) || IsRhAdmin;
 }
 
 public class AuthService : IAuthService

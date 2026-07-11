@@ -12,6 +12,7 @@ public static class AppPermissions
     public const string HcmReadSensitive = "hcm.read_sensitive";
     public const string HcmReadSalary = "hcm.read_salary";
     public const string VacationsApprove = "vacations.approve";
+    public const string VacationsApprovePayroll = "vacations.approve_payroll";
     public const string AttendanceValidate = "attendance.validate";
     public const string AttendanceRead = "attendance.read";
     public const string AttendanceCheckIn = "attendance.checkin";
@@ -110,6 +111,11 @@ public static class RolePermissionMap
             AppPermissions.RequisitionsRead, AppPermissions.RequisitionsCreate, AppPermissions.RequisitionsApprove,
             AppPermissions.RequisitionsAdmin, AppPermissions.RecruitmentRead, AppPermissions.RecruitmentWrite,
             AppPermissions.CompensationRead, AppPermissions.CompensationRequestCreate,
+        },
+        AppRoles.NominaAdmin => new[]
+        {
+            AppPermissions.VacationsApprovePayroll, AppPermissions.ManagerApproval,
+            AppPermissions.AttendancePayrollGenerate, AppPermissions.AttendancePayrollSend,
         },
         AppRoles.Colaborador => new[]
         {

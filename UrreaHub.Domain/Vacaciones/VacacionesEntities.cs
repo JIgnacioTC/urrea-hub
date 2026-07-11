@@ -19,6 +19,9 @@ public class TipoAusencia : BaseEntity
     public string Nombre { get; set; } = string.Empty;
     public bool DescuentaSaldo { get; set; }
     public bool RequiereAprobacion { get; set; }
+    public bool RequiereAprobacionJefe { get; set; } = true;
+    public bool RequiereAprobacionDH { get; set; }
+    public bool RequiereAprobacionNominas { get; set; }
     public string? Color { get; set; }
     public CategoriaPermiso Categoria { get; set; } = CategoriaPermiso.PermisoDiaCompleto;
     public bool EsParcial { get; set; }
@@ -101,15 +104,17 @@ public class SolicitudAusencia : BaseEntity
 
 public class AprobacionAusencia : BaseEntity
 {
-    public EstadoSolicitud Decision { get; set; }
+    public int Orden { get; set; }
+    public NivelAprobacionAusencia Nivel { get; set; }
+    public EstadoSolicitud Decision { get; set; } = EstadoSolicitud.Pendiente;
     public string? Comentario { get; set; }
-    public DateTime FechaDecision { get; set; }
+    public DateTime? FechaDecision { get; set; }
 
     public Guid SolicitudId { get; set; }
     public SolicitudAusencia Solicitud { get; set; } = null!;
 
-    public Guid AprobadorId { get; set; }
-    public Colaborador Aprobador { get; set; } = null!;
+    public Guid? AprobadorId { get; set; }
+    public Colaborador? Aprobador { get; set; }
 }
 
 public class AjusteSaldo : BaseEntity

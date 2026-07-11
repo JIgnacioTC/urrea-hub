@@ -5,14 +5,16 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, StatCard } from "@/components/ui/card";
 import { Alert, PageContainer, PageHeader } from "@/components/ui/page-header";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { attendanceService, type AttendanceSummary } from "@/lib/services/attendanceService";
+import { HorariosTabContent } from "@/components/asistencia/MisHorariosView";
 
 function fmtTime(iso?: string) {
   if (!iso) return "—";
   return new Date(iso).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
 }
 
-export function MiAsistenciaView() {
+function AsistenciaTabContent() {
   const [summary, setSummary] = useState<AttendanceSummary | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -52,18 +54,14 @@ export function MiAsistenciaView() {
   const hoy = summary?.registroHoy;
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="Mi asistencia"
-        subtitle="Registra entrada/salida y consulta tu historial."
-        action={
-          <Link href="/portal/asistencia/correccion" className="text-sm text-urrea-primary hover:underline">
-            Solicitar corrección
-          </Link>
-        }
-      />
-
+    <div className="space-y-6">
       {error && <Alert variant="error">{error}</Alert>}
+
+      <div className="flex justify-end">
+        <Link href="/portal/asistencia/correccion" className="text-sm text-urrea-primary hover:underline">
+          Solicitar corrección
+        </Link>
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Retardos (mes)" value={String(summary?.retardosPeriodo ?? "—")} accentClass="text-amber-700" />
@@ -127,6 +125,27 @@ export function MiAsistenciaView() {
           </div>
         )}
       </Card>
+    </div>
+  );
+}
+
+export function MiAsistenciaView() {
+  return (
+    <PageContainer>
+      <PageHeader title="Asistencia y horarios" subtitle="Registra entrada/salida, consulta tu turno y solicita cambios." />
+
+      <Tabs defaultValue="asistencia">
+        <TabsList className="mb-4">
+          <TabsTrigger value="asistencia" className="flex-1">Asistencia</TabsTrigger>
+          <TabsTrigger value="horarios" className="flex-1">Horarios</TabsTrigger>
+        </TabsList>
+        <TabsContent value="asistencia">
+          <AsistenciaTabContent />
+        </TabsContent>
+        <TabsContent value="horarios">
+          <HorariosTabContent />
+        </TabsContent>
+      </Tabs>
     </PageContainer>
   );
 }
