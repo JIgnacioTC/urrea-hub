@@ -15,7 +15,7 @@ public class MetadatoPlataformaConfiguration : IEntityTypeConfiguration<Metadato
         builder.Property(m => m.VersionTag).HasMaxLength(100);
         builder.Property(m => m.Notas).HasMaxLength(1000);
         builder.Property(m => m.MigracionId).HasMaxLength(200);
-        builder.Property(m => m.ContenidoJson).HasColumnType("nvarchar(max)").IsRequired();
+        builder.Property(m => m.ContenidoJson).IsRequired();
     }
 }
 
@@ -26,7 +26,7 @@ public class ConfiguracionGlobalConfiguration : IEntityTypeConfiguration<Configu
         builder.ToTable("ConfiguracionesGlobales", "Plataforma");
         builder.HasIndex(c => c.Clave).IsUnique();
         builder.Property(c => c.Clave).HasMaxLength(200).IsRequired();
-        builder.Property(c => c.Valor).HasColumnType("nvarchar(max)").IsRequired();
+        builder.Property(c => c.Valor).IsRequired();
         builder.Property(c => c.Descripcion).HasMaxLength(1000);
     }
 }

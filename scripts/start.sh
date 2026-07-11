@@ -52,22 +52,20 @@ wait_for_url() {
   exit 1
 }
 
-wait_for_sql_healthy() {
+wait_for_postgres_healthy() {
   local attempts="${1:-90}"
-  echo "Esperando SQL Server (healthcheck)..."
+  echo "Esperando PostgreSQL (healthcheck)..."
   for ((i = 1; i <= attempts; i++)); do
     local status
-    status="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}unknown{{end}}' urrea-hub-sql 2>/dev/null || echo "missing")"
+    status="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}unknown{{end}}' urrea-hub-postgres 2>/dev/null || echo "missing")"
     if [[ "$status" == "healthy" ]]; then
-      # Buffer para handshake TDS tras healthcheck del proceso
-      sleep 3
-      echo "SQL Server listo."
+      echo "PostgreSQL listo."
       return 0
     fi
     sleep 2
   done
-  echo "Error: SQL Server no alcanzó estado healthy a tiempo." >&2
-  echo "Revisa: docker logs urrea-hub-sql" >&2
+  echo "Error: PostgreSQL no alcanzó estado healthy a tiempo." >&2
+  echo "Revisa: docker logs urrea-hub-postgres" >&2
   exit 1
 }
 
@@ -94,10 +92,10 @@ else
   echo "==> Colima ya está activo"
 fi
 
-echo "==> Levantando SQL Server..."
+echo "==> Levantando PostgreSQL..."
 cd "$ROOT_DIR"
 docker compose up -d
-wait_for_sql_healthy 60
+wait_for_postgres_healthy 60
 
 stop_if_running() {
   local name="$1"
@@ -155,7 +153,7 @@ URREA Hub está arriba.
   Frontend:  http://localhost:3000
   API:       http://localhost:5018
   Swagger:   http://localhost:5018/swagger
-  SQL:       localhost:1433
+  Postgres:  localhost:5432
 
 Logs:
   $LOG_DIR/api.log

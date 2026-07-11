@@ -33,10 +33,10 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, string connectionString)
     {
         services.AddDbContext<UrreaHubDbContext>(options =>
-            options.UseSqlServer(connectionString, sql =>
+            options.UseNpgsql(connectionString, npgsql =>
             {
-                sql.MigrationsAssembly(typeof(UrreaHubDbContext).Assembly.FullName);
-                sql.EnableRetryOnFailure(3);
+                npgsql.MigrationsAssembly(typeof(UrreaHubDbContext).Assembly.FullName);
+                npgsql.EnableRetryOnFailure(3);
             }));
 
         services.AddApplication();

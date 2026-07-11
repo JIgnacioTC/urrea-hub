@@ -8,7 +8,7 @@ Plataforma integral de Recursos Humanos para URREA.
 |------|------------|
 | Backend | C# .NET 7 (ASP.NET Core Web API) |
 | Frontend | Next.js 16 + **Tailwind CSS 4** + TypeScript |
-| Base de datos | SQL Server 2022 |
+| Base de datos | PostgreSQL 16 |
 
 ## Estructura del proyecto
 
@@ -18,7 +18,7 @@ urrea-hub/
 ├── UrreaHub.Infrastructure/  # EF Core, DbContext, migraciones
 ├── UrreaHub.Api/             # API REST + Swagger
 ├── frontend/                 # Next.js (UI)
-└── docker-compose.yml        # SQL Server local
+└── docker-compose.yml        # PostgreSQL local
 ```
 
 ## Módulos MVP
@@ -35,7 +35,7 @@ urrea-hub/
 10. **Beneficios** — Beneficio, Solicitud, Elegibilidad, Aprobación
 11. **Auditoría** — Bitácora, Cambio estado, Notificación, Integración, Error integración
 
-Cada módulo tiene su **schema** en SQL Server (ej. `CoreRH`, `Vacaciones`, `Reclutamiento`).
+Cada módulo tiene su **schema** en PostgreSQL (ej. `CoreRH`, `Vacaciones`, `Reclutamiento`).
 
 ## Requisitos previos
 
@@ -47,9 +47,9 @@ Cada módulo tiene su **schema** en SQL Server (ej. `CoreRH`, `Vacaciones`, `Rec
 | Homebrew | — | Instalación de herramientas en macOS |
 | Colima | — | Motor Docker ligero (Mac Apple Silicon) |
 | Docker CLI | — | Cliente Docker |
-| Docker Compose | — | Plugin para levantar SQL Server |
+| Docker Compose | — | Plugin para levantar PostgreSQL |
 
-> **Mac Apple Silicon:** se usa **Azure SQL Edge** en lugar de SQL Server 2022, porque la imagen oficial amd64 no arranca bien en ARM.
+> **Mac Apple Silicon:** `postgres:16-alpine` corre nativo en arm64, sin workarounds.
 
 ### Inicio con un solo comando
 
@@ -121,7 +121,7 @@ Todos los recursos exponen CRUD básico: `GET`, `GET/{id}`, `POST`, `PUT/{id}`, 
 Por defecto en `UrreaHub.Api/appsettings.json`:
 
 ```
-Server=localhost,1433;Database=UrreaHub;User Id=sa;Password=UrreaHub2026!;TrustServerCertificate=True;
+Host=localhost;Port=5432;Database=UrreaHub;Username=urreahub;Password=UrreaHub2026!
 ```
 
 ## Migraciones EF Core

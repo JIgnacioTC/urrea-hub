@@ -181,7 +181,16 @@ public class UrreaHubDbContext : DbContext
         {
             modelBuilder.Entity(entityType.ClrType)
                 .Property("CreatedAt")
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("now() at time zone 'utc'");
+        }
+
+        // Los DateTime del dominio son "naive" (equivalentes a datetime2 de SQL Server, sin zona horaria).
+        // Sin esto, Npgsql exige Kind=Utc para mapear a "timestamp with time zone" y las inserciones fallan.
+        foreach (var property in modelBuilder.Model.GetEntityTypes()
+            .SelectMany(entity => entity.GetProperties())
+            .Where(p => p.ClrType == typeof(DateTime) || p.ClrType == typeof(DateTime?)))
+        {
+            property.SetColumnType("timestamp without time zone");
         }
     }
 }
