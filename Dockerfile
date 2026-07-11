@@ -1,5 +1,5 @@
 # ─── Build stage ─────────────────────────────────────────────────────────────
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS build
 WORKDIR /src
 
 # Restore dependencies (cached layer)
@@ -18,7 +18,7 @@ RUN dotnet publish UrreaHub.Api/UrreaHub.Api.csproj \
     --no-restore
 
 # ─── Runtime stage ───────────────────────────────────────────────────────────
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:7.0-alpine AS runtime
 WORKDIR /app
 
 # Create non-root user for security
