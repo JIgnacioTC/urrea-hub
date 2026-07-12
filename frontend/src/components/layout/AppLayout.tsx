@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { DhIcon } from "@/components/dh/shared/icons";
 import { UnifiedSidebar } from "@/components/layout/UnifiedSidebar";
 import { SidebarProvider } from "@/components/layout/SidebarContext";
+import { PortalSearch } from "@/components/layout/PortalSearch";
 import { avatarGradient, getInitials } from "@/components/portal/profile-helpers";
 import { clearSession, isRhAdmin, isTiAdmin, type Session } from "@/lib/auth";
 import { PortalMobileMenu, MenuIcon } from "@/components/portal/PortalMobileMenu";
 import {
-  PORTAL_HOME,
   WorkspaceType,
   type PortalNavLink,
   type PortalNavSection,
@@ -19,7 +19,6 @@ import {
 } from "@/lib/portal/navigation";
 import type { ColaboradorPerfil } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { DhSearchInput } from "@/components/dh/shared/ui";
 
 function MobileHeader({
   session,
@@ -57,22 +56,22 @@ function DesktopHeader({
   session,
   perfil,
   current,
+  sections,
 }: {
   session: Session;
   perfil: ColaboradorPerfil | null;
   current: PortalNavLink | undefined;
+  sections: PortalNavSection[];
 }) {
   const initials = perfil
     ? getInitials(perfil.nombre, perfil.apellidoPaterno, perfil.apellidoMaterno)
     : session.nombreCompleto.slice(0, 2).toUpperCase();
 
-  const [search, setSearch] = useState("");
-
   return (
     <header className="sticky top-0 z-20 hidden h-14 items-center justify-between border-b border-urrea-border/60 bg-white/95 px-6 backdrop-blur-md lg:flex xl:px-8">
       <div className="flex flex-1 items-center gap-4">
         <div className="min-w-0 flex-1 max-w-sm">
-          <DhSearchInput value={search} onChange={setSearch} placeholder="Buscar en el portal…" />
+          <PortalSearch sections={sections} />
         </div>
       </div>
 
@@ -196,7 +195,7 @@ export function AppLayout({
 
         <div className="flex min-w-0 flex-1 flex-col">
           <MobileHeader session={session} perfil={perfil} current={currentNavItem} />
-          <DesktopHeader session={session} perfil={perfil} current={currentNavItem} />
+          <DesktopHeader session={session} perfil={perfil} current={currentNavItem} sections={sections} />
 
           <main className="main-with-mobile-nav flex-1 overflow-y-auto">
             <div className="mx-auto w-full max-w-7xl p-4 lg:p-8">

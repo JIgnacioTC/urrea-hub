@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { DhIcon } from "@/components/dh/shared/icons";
+import { PortalSearch } from "@/components/layout/PortalSearch";
 import { isNavActive, type PortalNavSection } from "@/lib/portal/navigation";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +50,10 @@ export function PortalMobileMenu({
             ✕
           </button>
         </div>
-        <nav className="overflow-y-auto px-3 py-3" style={{ maxHeight: "calc(85dvh - 8rem)" }}>
+        <div className="border-b border-urrea-border/60 px-4 py-3">
+          <PortalSearch sections={sections} onNavigate={onClose} />
+        </div>
+        <nav className="overflow-y-auto px-3 py-3" style={{ maxHeight: "calc(85dvh - 11rem)" }}>
           {sections.map((section) => (
             <div key={section.title} className="mb-4">
               <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-wider text-urrea-text-muted">
