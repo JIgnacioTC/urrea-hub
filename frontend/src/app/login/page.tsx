@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -92,12 +91,6 @@ export default function LoginPage() {
               {loading ? "Ingresando..." : "Iniciar sesión"}
             </Button>
           </form>
-
-          <p className="mt-6 text-center text-xs">
-            <Link href="/dh" className="text-sm font-medium text-urrea-primary underline-offset-2 hover:underline">
-              Acceder al Centro Integral de Desarrollo Humano
-            </Link>
-          </p>
         </Card>
       </div>
     </div>

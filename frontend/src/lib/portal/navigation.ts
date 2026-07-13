@@ -13,7 +13,7 @@ export type PortalNavLink = {
   children?: PortalNavLink[];
 };
 
-export type WorkspaceType = "portal" | "rh" | "ti" | "admin-ti" | "admin-dh";
+export type WorkspaceType = "portal" | "rh" | "ti";
 
 export type WorkspaceConfig = {
   id: WorkspaceType;
@@ -45,17 +45,6 @@ export const PORTAL_HOME: PortalNavLink = {
   icon: "dashboard",
 };
 
-export const NUCLEO_HCM_SECTION: PortalNavSection = {
-  title: "Núcleo HCM",
-  rhOnly: true,
-  links: [
-    { href: "/portal/hcm", label: "Centro HCM", shortLabel: "HCM", icon: "dashboard", rhOnly: true },
-    { href: "/portal/hcm/personas", label: "Gestión de personas", shortLabel: "Personas", icon: "users", rhOnly: true },
-    { href: "/portal/hcm/calidad-datos", label: "Calidad de datos", shortLabel: "Calidad", icon: "analytics", rhOnly: true },
-    { href: "/portal/hcm/organigrama", label: "Organigrama", shortLabel: "Org.", icon: "chart", rhOnly: true },
-  ],
-};
-
 const MI_DIA_LINKS: PortalNavLink[] = [
   { href: "/portal/mi-ficha", label: "Mi ficha", shortLabel: "Ficha", icon: "users" },
   { href: "/portal/asistencia", label: "Asistencia y horarios", shortLabel: "Asist.", icon: "clock" },
@@ -75,58 +64,49 @@ const MI_DESARROLLO_LINKS: PortalNavLink[] = [
 ];
 
 const MI_EQUIPO_LINKS: PortalNavLink[] = [
-  { href: "/portal/mi-equipo", label: "Mi equipo", shortLabel: "Equipo", icon: "users", jefeOnly: true },
-  { href: "/portal/aprobaciones", label: "Aprobaciones", shortLabel: "Aprob.", icon: "calendar", jefeOnly: true },
-  { href: "/portal/aprobaciones/horarios", label: "Aprobar Horarios", shortLabel: "Aprob. hor.", icon: "clock", jefeOnly: true },
-  { href: "/portal/equipo/asistencia", label: "Asistencia del equipo", shortLabel: "Eq. asist.", icon: "clock", jefeOnly: true },
-  { href: "/portal/equipo/asistencia/pendientes", label: "Validar asistencia", shortLabel: "Validar", icon: "clock", jefeOnly: true },
-  { href: "/portal/equipo/onboarding", label: "Onboarding del equipo", shortLabel: "Onboard.", icon: "onboarding", jefeOnly: true },
+  {
+    href: "/portal/mi-equipo",
+    label: "Mi equipo",
+    shortLabel: "Equipo",
+    icon: "users",
+    jefeOnly: true,
+    children: [
+      { href: "/portal/equipo/asistencia", label: "Asistencia del equipo", shortLabel: "Eq. asist.", icon: "clock", jefeOnly: true },
+      { href: "/portal/equipo/asistencia/pendientes", label: "Validar asistencia", shortLabel: "Validar", icon: "clock", jefeOnly: true },
+      { href: "/portal/equipo/onboarding", label: "Onboarding del equipo", shortLabel: "Onboard.", icon: "onboarding", jefeOnly: true },
+    ],
+  },
+  {
+    href: "/portal/aprobaciones",
+    label: "Aprobaciones",
+    shortLabel: "Aprob.",
+    icon: "calendar",
+    jefeOnly: true,
+    children: [
+      { href: "/portal/aprobaciones/horarios", label: "Aprobar horarios", shortLabel: "Aprob. hor.", icon: "clock", jefeOnly: true },
+      { href: "/portal/aprobaciones/requisiciones", label: "Aprobar requisiciones", shortLabel: "Aprob. req.", icon: "folder", jefeOnly: true },
+    ],
+  },
   { href: "/portal/requisiciones", label: "Mis requisiciones", shortLabel: "Req.", icon: "folder", jefeOnly: true },
-  { href: "/portal/aprobaciones/requisiciones", label: "Aprobar requisiciones", shortLabel: "Aprob.", icon: "folder", jefeOnly: true },
 ];
-
-/** @deprecated Secciones agrupadas en MI_DIA_LINKS, MI_DESARROLLO_LINKS, MI_EQUIPO_LINKS */
-const RH_ADMIN_SECTION: PortalNavSection = {
-  title: "Administración RH",
-  rhOnly: true,
-    links: [
-      { href: "/rh/dashboard", label: "Dashboard RH", shortLabel: "RH", icon: "dashboard", rhOnly: true },
-      { href: "/rh/admin/portal", label: "Portal y contenido", shortLabel: "Portal", icon: "folder", rhOnly: true },
-      { href: "/ti", label: "Centro TI", shortLabel: "TI", icon: "analytics", tiOnly: true },
-      { href: "/rh/permisos", label: "Catálogo permisos", shortLabel: "Cat.", icon: "calendar", rhOnly: true },
-    { href: "/rh/permisos/solicitudes", label: "Solicitudes", shortLabel: "Solic.", icon: "calendar", rhOnly: true },
-    { href: "/rh/reportes", label: "Reportes", shortLabel: "Report.", icon: "analytics", rhOnly: true },
-  ],
-};
 
 export const TI_SECTIONS: PortalNavSection[] = [
   {
+    title: "Resumen",
+    links: [
+      { href: "/admin-ti", label: "Dashboard TI", shortLabel: "Inicio", icon: "dashboard" },
+      { href: "/ti", label: "Centro TI técnico", shortLabel: "TI", icon: "analytics" },
+    ],
+  },
+  {
     title: "Plataforma",
     links: [
-      { href: "/ti", label: "Centro TI", shortLabel: "Inicio", icon: "dashboard" },
       { href: "/ti/schema", label: "Schemas BD", shortLabel: "Schema", icon: "folder" },
       { href: "/ti/apis", label: "Catálogo APIs", shortLabel: "APIs", icon: "analytics" },
       { href: "/ti/snapshots", label: "Snapshots dev/prod", shortLabel: "Snap.", icon: "calendar" },
-    ],
-  },
-  {
-    title: "Administración",
-    links: [
-      { href: "/admin-ti", label: "Centro Admin TI", shortLabel: "Admin TI", icon: "analytics" },
       { href: "/ti/admin", label: "Explorador de entidades", shortLabel: "Entidades", icon: "users" },
-      { href: "/rh/dashboard", label: "Administración RH", shortLabel: "RH", icon: "dashboard", rhOnly: true },
+      { href: "/admin-ti/configuracion", label: "Variables Globales", shortLabel: "Config TI", icon: "analytics" },
     ],
-  },
-  {
-    title: "Enlaces",
-    links: [{ href: "/portal", label: "Portal colaborador", shortLabel: "Portal", icon: "dashboard" }],
-  },
-];
-
-export const ADMIN_TI_SECTIONS: PortalNavSection[] = [
-  {
-    title: "Resumen",
-    links: [{ href: "/admin-ti", label: "Dashboard TI", shortLabel: "Inicio", icon: "dashboard" }],
   },
   {
     title: "Seguridad",
@@ -137,58 +117,106 @@ export const ADMIN_TI_SECTIONS: PortalNavSection[] = [
       { href: "/admin-ti/seguridad/asignaciones", label: "Asignación de roles", shortLabel: "Asign.", icon: "users" },
     ],
   },
-  {
-    title: "Plataforma",
-    links: [
-      { href: "/admin-ti/configuracion", label: "Variables Globales", shortLabel: "Config TI", icon: "analytics" },
-      { href: "/ti/admin", label: "Explorador entidades", shortLabel: "Entidades", icon: "folder" },
-      { href: "/ti", label: "Centro TI técnico", shortLabel: "TI", icon: "analytics" },
-    ],
-  },
-  {
-    title: "Enlaces",
-    links: [{ href: "/portal", label: "Portal colaborador", shortLabel: "Portal", icon: "dashboard" }],
-  },
 ];
 
-export const ADMIN_DH_SECTIONS: PortalNavSection[] = [
+export const RH_SECTIONS: PortalNavSection[] = [
   {
     title: "Resumen",
-    links: [{ href: "/admin-dh", label: "Dashboard DH", shortLabel: "Inicio", icon: "dashboard" }],
-  },
-  {
-    title: "Organización",
     links: [
-      { href: "/admin-dh/organizacion/jefes", label: "Asignación de jefes", shortLabel: "Jefes", icon: "users" },
-      { href: "/admin-dh/organizacion/areas", label: "Áreas", shortLabel: "Áreas", icon: "folder" },
-      { href: "/admin-dh/organizacion/subareas", label: "Subáreas", shortLabel: "Subáreas", icon: "folder" },
-      { href: "/admin-dh/organizacion/departamentos", label: "Departamentos", shortLabel: "Depto.", icon: "folder" },
-      { href: "/admin-dh/organizacion/puestos", label: "Puestos", shortLabel: "Puestos", icon: "folder" },
-      { href: "/admin-dh/organizacion/sedes", label: "Sedes", shortLabel: "Sedes", icon: "folder" },
-      { href: "/admin-dh/organizacion/centros-costo", label: "Centros de costo", shortLabel: "CC", icon: "folder" },
+      { href: "/rh/dashboard", label: "Dashboard RH", shortLabel: "RH", icon: "dashboard" },
+      { href: "/admin-dh", label: "Dashboard DH", shortLabel: "DH", icon: "dashboard" },
+      { href: "/rh/admin/portal", label: "Administración de portal", shortLabel: "Portal", icon: "folder" },
     ],
   },
   {
-    title: "Vacaciones y permisos",
+    title: "Personas y organización",
     links: [
-      { href: "/admin-dh/vacaciones/solicitudes", label: "Solicitudes", shortLabel: "Solic.", icon: "calendar" },
-      { href: "/admin-dh/vacaciones/saldos", label: "Saldos", shortLabel: "Saldos", icon: "calendar" },
-      { href: "/admin-dh/vacaciones/politicas", label: "Políticas", shortLabel: "Polít.", icon: "folder" },
-      { href: "/admin-dh/vacaciones/tipos-ausencia", label: "Tipos de ausencia", shortLabel: "Tipos", icon: "folder" },
-      { href: "/admin-dh/vacaciones/calendarios", label: "Calendarios", shortLabel: "Cal.", icon: "calendar" },
-      { href: "/admin-dh/vacaciones/nomina", label: "Incidencias nómina", shortLabel: "Nómina", icon: "analytics" },
+      {
+        href: "/portal/hcm/personas",
+        label: "Gestión de personas",
+        shortLabel: "Personas",
+        icon: "users",
+        children: [
+          { href: "/portal/hcm", label: "Centro HCM", shortLabel: "HCM", icon: "dashboard" },
+          { href: "/portal/hcm/calidad-datos", label: "Calidad de datos", shortLabel: "Calidad", icon: "analytics" },
+          { href: "/portal/hcm/organigrama", label: "Organigrama", shortLabel: "Org.", icon: "chart" },
+        ],
+      },
+      {
+        href: "/admin-dh/organizacion/areas",
+        label: "Estructura organizacional",
+        shortLabel: "Estructura",
+        icon: "folder",
+        children: [
+          { href: "/admin-dh/organizacion/jefes", label: "Asignación de jefes", shortLabel: "Jefes", icon: "users" },
+          { href: "/admin-dh/organizacion/areas", label: "Áreas", shortLabel: "Áreas", icon: "folder" },
+          { href: "/admin-dh/organizacion/subareas", label: "Subáreas", shortLabel: "Subáreas", icon: "folder" },
+          { href: "/admin-dh/organizacion/departamentos", label: "Departamentos", shortLabel: "Depto.", icon: "folder" },
+          { href: "/admin-dh/organizacion/puestos", label: "Puestos", shortLabel: "Puestos", icon: "folder" },
+          { href: "/admin-dh/organizacion/sedes", label: "Sedes", shortLabel: "Sedes", icon: "folder" },
+          { href: "/admin-dh/organizacion/centros-costo", label: "Centros de costo", shortLabel: "CC", icon: "folder" },
+        ],
+      },
     ],
   },
   {
-    title: "Control de asistencia",
+    title: "Vacaciones y ausencias",
     links: [
-      { href: "/admin-dh/asistencia", label: "Monitor de asistencia", shortLabel: "Monitor", icon: "calendar" },
-      { href: "/admin-dh/asistencia/incidencias", label: "Incidencias", shortLabel: "Incid.", icon: "calendar" },
-      { href: "/admin-dh/asistencia/turnos", label: "Turnos", shortLabel: "Turnos", icon: "folder" },
-      { href: "/admin-dh/asistencia/reglas", label: "Reglas", shortLabel: "Reglas", icon: "folder" },
-      { href: "/admin-dh/asistencia/nomina", label: "Reporte nómina", shortLabel: "Nómina", icon: "analytics" },
-      { href: "/admin-dh/asistencia/comercial", label: "Fuerza de ventas", shortLabel: "Comercial", icon: "users" },
-      { href: "/admin-dh/asistencia/permisos-remotos", label: "Permisos remotos", shortLabel: "Remotos", icon: "shield" },
+      {
+        href: "/admin-dh/vacaciones/solicitudes",
+        label: "Solicitudes y saldos",
+        shortLabel: "Solic.",
+        icon: "calendar",
+        children: [
+          { href: "/admin-dh/vacaciones/saldos", label: "Saldos", shortLabel: "Saldos", icon: "calendar" },
+          { href: "/rh/permisos/solicitudes", label: "Solicitudes de permisos", shortLabel: "Permisos", icon: "calendar" },
+          { href: "/rh/reportes", label: "Reportes", shortLabel: "Report.", icon: "analytics" },
+        ],
+      },
+      {
+        href: "/rh/permisos",
+        label: "Configuración",
+        shortLabel: "Config",
+        icon: "folder",
+        children: [
+          { href: "/rh/permisos", label: "Catálogo LFT", shortLabel: "Catálogo", icon: "calendar" },
+          { href: "/admin-dh/vacaciones/tipos-ausencia", label: "Tipos de ausencia", shortLabel: "Tipos", icon: "folder" },
+          { href: "/admin-dh/vacaciones/politicas", label: "Políticas", shortLabel: "Polít.", icon: "folder" },
+          { href: "/admin-dh/vacaciones/calendarios", label: "Calendarios", shortLabel: "Cal.", icon: "calendar" },
+          { href: "/rh/configuracion-permisos", label: "Configurar permisos", shortLabel: "Config", icon: "calendar" },
+          { href: "/admin-dh/vacaciones/nomina", label: "Incidencias nómina", shortLabel: "Nómina", icon: "analytics" },
+        ],
+      },
+    ],
+  },
+  {
+    title: "Asistencia",
+    links: [
+      {
+        href: "/admin-dh/asistencia",
+        label: "Monitoreo",
+        shortLabel: "Monitor",
+        icon: "clock",
+        children: [
+          { href: "/admin-dh/asistencia/incidencias", label: "Incidencias", shortLabel: "Incid.", icon: "calendar" },
+          { href: "/admin-dh/asistencia/comercial", label: "Fuerza de ventas", shortLabel: "Comercial", icon: "users" },
+          { href: "/admin-dh/asistencia/permisos-remotos", label: "Permisos remotos", shortLabel: "Remotos", icon: "shield" },
+        ],
+      },
+      {
+        href: "/admin-dh/asistencia/turnos",
+        label: "Configuración",
+        shortLabel: "Config",
+        icon: "folder",
+        children: [{ href: "/admin-dh/asistencia/reglas", label: "Reglas", shortLabel: "Reglas", icon: "folder" }],
+      },
+      {
+        href: "/admin-dh/asistencia/nomina",
+        label: "Nómina y cargas",
+        shortLabel: "Nómina",
+        icon: "analytics",
+        children: [{ href: "/rh/asistencias", label: "Importar asistencias", shortLabel: "Importar", icon: "clock" }],
+      },
     ],
   },
   {
@@ -200,7 +228,7 @@ export const ADMIN_DH_SECTIONS: PortalNavSection[] = [
     ],
   },
   {
-    title: "Compensaciones y beneficios",
+    title: "Compensación y beneficios",
     links: [
       { href: "/admin-dh/compensaciones", label: "Compensaciones", shortLabel: "Comp.", icon: "analytics" },
       { href: "/admin-dh/compensaciones/solicitudes", label: "Solicitudes de ajuste", shortLabel: "Ajustes", icon: "folder" },
@@ -208,56 +236,21 @@ export const ADMIN_DH_SECTIONS: PortalNavSection[] = [
     ],
   },
   {
-    title: "Workforce & talent",
+    title: "Reclutamiento y talento",
     links: [
       { href: "/admin-dh/requisiciones", label: "Requisiciones", shortLabel: "Req.", icon: "folder" },
-      { href: "/admin-dh/reclutamiento", label: "Reclutamiento", shortLabel: "Reclut.", icon: "users" },
-      { href: "/admin-dh/reclutamiento/vacantes", label: "Vacantes", shortLabel: "Vac.", icon: "folder" },
-      { href: "/admin-dh/reclutamiento/pipeline", label: "Pipeline", shortLabel: "Pipe.", icon: "analytics" },
+      {
+        href: "/admin-dh/reclutamiento",
+        label: "Reclutamiento",
+        shortLabel: "Reclut.",
+        icon: "users",
+        children: [
+          { href: "/admin-dh/reclutamiento/vacantes", label: "Vacantes", shortLabel: "Vac.", icon: "folder" },
+          { href: "/admin-dh/reclutamiento/pipeline", label: "Pipeline", shortLabel: "Pipe.", icon: "analytics" },
+        ],
+      },
     ],
   },
-  {
-    title: "Operación",
-    links: [
-      { href: "/portal/hcm/personas", label: "Gestión de personas", shortLabel: "Personas", icon: "users", rhOnly: true },
-      { href: "/rh/dashboard", label: "Dashboard RH", shortLabel: "RH", icon: "dashboard", rhOnly: true },
-    ],
-  },
-  {
-    title: "Enlaces",
-    links: [{ href: "/portal", label: "Portal colaborador", shortLabel: "Portal", icon: "dashboard" }],
-  },
-];
-
-export const RH_SECTIONS: PortalNavSection[] = [
-  {
-    title: "General",
-    links: [
-      { href: "/rh/dashboard", label: "Dashboard", shortLabel: "Inicio", icon: "dashboard" },
-      { href: "/admin-dh", label: "Centro Admin DH", shortLabel: "Admin DH", icon: "folder" },
-    ],
-  },
-  NUCLEO_HCM_SECTION,
-  {
-    title: "Control de asistencia",
-    links: [
-      { href: "/rh/asistencias", label: "Importar asistencias", shortLabel: "Asistencias", icon: "clock" },
-    ]
-  },
-  {
-    title: "Permisos y ausencias",
-    links: [
-      { href: "/rh/permisos", label: "Catálogo LFT", shortLabel: "Catálogo", icon: "calendar" },
-      { href: "/rh/permisos/solicitudes", label: "Solicitudes", shortLabel: "Solic.", icon: "calendar" },
-      { href: "/rh/reportes", label: "Reportes", shortLabel: "Report.", icon: "analytics" },
-      { href: "/rh/configuracion-permisos", label: "Configurar permisos", shortLabel: "Config", icon: "calendar" },
-    ],
-  },
-  {
-    title: "Portal y contenido",
-    links: [{ href: "/rh/admin/portal", label: "Administración portal", shortLabel: "Portal", icon: "folder" }],
-  },
-  { title: "Colaborador", links: [{ href: "/portal", label: "Portal colaborador", shortLabel: "Portal", icon: "dashboard" }] },
 ];
 
 export function isNavActive(pathname: string, href: string) {
@@ -270,6 +263,16 @@ export function isNavActive(pathname: string, href: string) {
 }
 
 export function filterNavSections(sections: PortalNavSection[], session: Session) {
+  const filterLinks = (links: PortalNavLink[]): PortalNavLink[] =>
+    links
+      .filter((link) => {
+        if (link.rhOnly && !isRhAdmin(session)) return false;
+        if (link.tiOnly && !isTiAdmin(session)) return false;
+        if (link.jefeOnly && !isJefe(session)) return false;
+        return true;
+      })
+      .map((link) => (link.children ? { ...link, children: filterLinks(link.children) } : link));
+
   return sections
     .filter((section) => {
       if (section.rhOnly && !isRhAdmin(session)) return false;
@@ -277,15 +280,7 @@ export function filterNavSections(sections: PortalNavSection[], session: Session
       if (section.jefeOnly && !isJefe(session)) return false;
       return true;
     })
-    .map((section) => ({
-      ...section,
-      links: section.links.filter((link) => {
-        if (link.rhOnly && !isRhAdmin(session)) return false;
-        if (link.tiOnly && !isTiAdmin(session)) return false;
-        if (link.jefeOnly && !isJefe(session)) return false;
-        return true;
-      }),
-    }))
+    .map((section) => ({ ...section, links: filterLinks(section.links) }))
     .filter((section) => section.links.length > 0);
 }
 
@@ -300,13 +295,9 @@ export function buildPortalSections(session: Session): PortalNavSection[] {
 
   const equipoLinks = filterLinks(MI_EQUIPO_LINKS);
   if (equipoLinks.length > 0) {
-    sections.push({ title: "Liderazgo", links: equipoLinks, jefeOnly: true });
+    sections.push({ title: "Mi equipo", links: equipoLinks, jefeOnly: true });
   }
 
-  if (isRhAdmin(session)) {
-    sections.unshift(NUCLEO_HCM_SECTION);
-    sections.push(RH_ADMIN_SECTION);
-  }
   return sections;
 }
 
@@ -320,14 +311,14 @@ export function buildMobileNav(session: Session): PortalNavLink[] {
 }
 
 export function getNavItemByPath(pathname: string, sections: PortalNavSection[]): PortalNavLink | undefined {
-  const all = [PORTAL_HOME, ...sections.flatMap((s) => s.links)];
+  const all = [PORTAL_HOME, ...sections.flatMap((s) => s.links.flatMap((l) => [l, ...(l.children ?? [])]))];
   return all.find((n) => isNavActive(pathname, n.href));
 }
 
 export function flattenRhLinks(sections: PortalNavSection[]) {
-  return sections.flatMap((section) => section.links);
+  return sections.flatMap((section) => section.links.flatMap((l) => [l, ...(l.children ?? [])]));
 }
 
 export function flattenTiLinks(sections: PortalNavSection[]) {
-  return sections.flatMap((section) => section.links);
+  return sections.flatMap((section) => section.links.flatMap((l) => [l, ...(l.children ?? [])]));
 }
