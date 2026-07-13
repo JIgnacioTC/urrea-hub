@@ -178,7 +178,7 @@ public record ChecadorResultDto(
     string? EmpleadoNombre,
     string? NumeroEmpleado,
     string? TipoRegistro,
-    string? HoraRegistro,
+    DateTime? HoraRegistro,
     string? TurnoNombre,
     string? TurnoHorario);
 
