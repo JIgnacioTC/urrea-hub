@@ -1,5 +1,3 @@
-export type DhRole = "admin_dh" | "key_user" | "lider" | "colaborador" | "ti";
-
 export type ColaboradorEstatus = "activo" | "baja" | "reingreso" | "pendiente";
 
 export interface ColaboradorHcm {
@@ -202,11 +200,3 @@ export interface BeneficioSolicitud {
   estatus: "solicitado" | "aprobado" | "rechazado" | "en_proceso";
   fecha: string;
 }
-
-export const DH_ROLE_LABELS: Record<DhRole, string> = {
-  admin_dh: "Administrador DH",
-  key_user: "Key User de módulo",
-  lider: "Líder / Jefe directo",
-  colaborador: "Colaborador",
-  ti: "TI / Integraciones",
-};

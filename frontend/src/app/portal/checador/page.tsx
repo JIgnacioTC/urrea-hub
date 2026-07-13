@@ -7,6 +7,11 @@ import { attendanceService, type ChecadorResult } from "@/lib/services/attendanc
 import { employeeService } from "@/lib/services/employeeService";
 import type { HcmCatalogItem } from "@/lib/types/hcm";
 
+function fmtTime(iso?: string) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
 export default function ChecadorSedePage() {
   const [sedes, setSedes] = useState<HcmCatalogItem[]>([]);
   const [selectedSedeId, setSelectedSedeId] = useState("");
@@ -186,7 +191,7 @@ export default function ChecadorSedePage() {
               <div className="mt-6 p-4 rounded-2xl bg-slate-800/50 border border-slate-700/50 inline-grid grid-cols-2 gap-x-8 gap-y-2 text-left max-w-md mx-auto">
                 <div>
                   <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Hora Registro</span>
-                  <p className="text-lg font-bold text-white font-mono">{result.horaRegistro}</p>
+                  <p className="text-lg font-bold text-white font-mono">{fmtTime(result.horaRegistro)}</p>
                 </div>
                 <div>
                   <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Turno Asignado</span>

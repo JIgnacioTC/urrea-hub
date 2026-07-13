@@ -824,17 +824,15 @@ public class AttendanceService : IAttendanceService
         await _context.SaveChangesAsync(cancellationToken);
         await _audit.LogEventoAsync("Asistencia", "ChecadorSede", "RegistroAsistencia", existing.Id, emp.Id.ToString(), $"Tipo: {tipoReg}, SedeId: {dto.SedeId}", cancellationToken);
 
-        var localTimeStr = now.ToLocalTime().ToString("HH:mm:ss");
-
         return new ChecadorResultDto(
-            true, 
-            null, 
-            warning, 
-            nombreCompleto, 
-            cleanNumero, 
-            tipoReg, 
-            localTimeStr, 
-            turno.Nombre, 
+            true,
+            null,
+            warning,
+            nombreCompleto,
+            cleanNumero,
+            tipoReg,
+            now,
+            turno.Nombre,
             $"{turno.HoraEntrada:hh\\:mm} - {turno.HoraSalida:hh\\:mm}"
         );
     }

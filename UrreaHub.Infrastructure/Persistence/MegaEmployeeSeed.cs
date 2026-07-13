@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using UrreaHub.Application.Auth;
 using UrreaHub.Domain.CoreRH;
 using UrreaHub.Domain.Vacaciones;
 
@@ -14,6 +15,9 @@ public static class MegaEmployeeSeed
 {
     private const string MarkerAreaCodigo = "MFG";
     private const int Seed = 20260711;
+
+    // Debe coincidir con la contraseña compartida usada en DbSeeder para los colaboradores demo.
+    private const string DefaultPassword = "Urrea2026!";
 
     private static readonly string[] NombresPool =
     {
@@ -104,7 +108,7 @@ public static class MegaEmployeeSeed
         ["Oficina"] = new[] { 14, 8, 22, 34, 16, 6 },
     };
 
-    public static async Task SeedAsync(UrreaHubDbContext context)
+    public static async Task SeedAsync(UrreaHubDbContext context, IPasswordHasher passwordHasher)
     {
         if (await context.Areas.AnyAsync(a => a.Codigo == MarkerAreaCodigo))
             return;
@@ -349,9 +353,10 @@ public static class MegaEmployeeSeed
         context.AddRange(colaboradoresPorArea.Select(x => x.Colaborador));
         await context.SaveChangesAsync();
 
-        // --- Datos sensibles + saldos de vacaciones, en lotes ---
+        // --- Datos sensibles + saldos de vacaciones + acceso al portal, en lotes ---
         var anio = now.Year;
         var batch = 0;
+        var passwordHash = passwordHasher.Hash(DefaultPassword);
         foreach (var (colaborador, rfc, _) in colaboradoresPorArea)
         {
             context.ColaboradoresDatosSensibles.Add(new ColaboradorDatosSensibles
@@ -372,6 +377,16 @@ public static class MegaEmployeeSeed
                 Anio = anio,
                 DiasAsignados = politica.DiasAnuales,
                 DiasUsados = random.Next(0, politica.DiasAnuales + 1),
+                CreatedAt = now,
+                IsActive = true,
+            });
+
+            context.CuentasAcceso.Add(new CuentaAcceso
+            {
+                Id = Guid.NewGuid(),
+                ColaboradorId = colaborador.Id,
+                PasswordHash = passwordHash,
+                DebeCambiarPassword = false,
                 CreatedAt = now,
                 IsActive = true,
             });

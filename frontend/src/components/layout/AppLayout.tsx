@@ -174,8 +174,6 @@ export function AppLayout({
     if (ws === "portal") router.push("/portal");
     else if (ws === "rh") router.push("/rh/dashboard");
     else if (ws === "ti") router.push("/ti");
-    else if (ws === "admin-ti") router.push("/admin-ti");
-    else if (ws === "admin-dh") router.push("/admin-dh");
   };
 
   const currentNavItem = getNavItemByPath(pathname, sections);

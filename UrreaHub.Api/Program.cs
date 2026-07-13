@@ -107,7 +107,7 @@ using (var scope = app.Services.CreateScope())
 
     var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
     await DbSeeder.SeedAsync(db, hasher);
-    await MegaEmployeeSeed.SeedAsync(db);
+    await MegaEmployeeSeed.SeedAsync(db, hasher);
     await SecuritySeed.SeedAsync(db);
     await CatalogSeed.SeedAsync(db);
     await TiPlatformSeed.SeedAsync(db);

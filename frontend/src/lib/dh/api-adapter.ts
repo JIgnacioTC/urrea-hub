@@ -3,7 +3,7 @@
  * Hoy consume mock-data; en producción reemplazar implementaciones por fetch a CDM/SAP.
  */
 import * as mock from "./mock-data";
-import type { ColaboradorHcm, DhRole } from "./types";
+import type { ColaboradorHcm } from "./types";
 
 export interface DhApiAdapter {
   getColaboradores(): Promise<ColaboradorHcm[]>;
@@ -27,5 +27,3 @@ export const dhApi: DhApiAdapter = {
     return { ok: true, message: "Sync simulada — conectar POST /api/integraciones/sync" };
   },
 };
-
-export type { DhRole };

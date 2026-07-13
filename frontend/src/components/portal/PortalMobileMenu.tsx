@@ -60,25 +60,57 @@ export function PortalMobileMenu({
                 {section.title}
               </p>
               <div className="space-y-0.5">
-                {section.links.map((item) => {
-                  const active = isNavActive(pathname, item.href);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={onClose}
-                      className={cn(
-                        "flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition",
-                        active
-                          ? "bg-urrea-primary/8 font-medium text-urrea-primary"
-                          : "text-urrea-text hover:bg-urrea-bg-soft",
-                      )}
-                    >
-                      <DhIcon name={item.icon} className={cn("h-[18px] w-[18px]", active ? "text-urrea-primary" : "text-urrea-text-muted")} />
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
+                {section.links.map((item) =>
+                  item.children && item.children.length > 0 ? (
+                    <div key={item.href} className="mb-1">
+                      <p className="flex items-center gap-3 px-3 py-1.5 text-sm font-medium text-urrea-text">
+                        <DhIcon name={item.icon} className="h-[18px] w-[18px] text-urrea-text-muted" />
+                        {item.label}
+                      </p>
+                      <div className="ml-7 space-y-0.5 border-l border-urrea-border/60 pl-2">
+                        {item.children.map((child) => {
+                          const active = isNavActive(pathname, child.href);
+                          return (
+                            <Link
+                              key={child.href}
+                              href={child.href}
+                              onClick={onClose}
+                              className={cn(
+                                "flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
+                                active
+                                  ? "bg-urrea-primary/8 font-medium text-urrea-primary"
+                                  : "text-urrea-text hover:bg-urrea-bg-soft",
+                              )}
+                            >
+                              <DhIcon name={child.icon} className={cn("h-4 w-4", active ? "text-urrea-primary" : "text-urrea-text-muted")} />
+                              <span>{child.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    (() => {
+                      const active = isNavActive(pathname, item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={onClose}
+                          className={cn(
+                            "flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition",
+                            active
+                              ? "bg-urrea-primary/8 font-medium text-urrea-primary"
+                              : "text-urrea-text hover:bg-urrea-bg-soft",
+                          )}
+                        >
+                          <DhIcon name={item.icon} className={cn("h-[18px] w-[18px]", active ? "text-urrea-primary" : "text-urrea-text-muted")} />
+                          <span>{item.label}</span>
+                        </Link>
+                      );
+                    })()
+                  ),
+                )}
               </div>
             </div>
           ))}

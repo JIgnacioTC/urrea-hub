@@ -6,8 +6,6 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { portalService } from "@/lib/services/portalService";
 import { getSession, isRhAdmin, isTiAdmin, type Session } from "@/lib/auth";
 import {
-  ADMIN_DH_SECTIONS,
-  ADMIN_TI_SECTIONS,
   buildMobileNav,
   buildPortalSections,
   filterNavSections,
@@ -15,7 +13,6 @@ import {
   flattenTiLinks,
   RH_SECTIONS,
   TI_SECTIONS,
-  type PortalNavSection,
 } from "@/lib/portal/navigation";
 import type { ColaboradorPerfil } from "@/lib/types";
 
@@ -61,13 +58,7 @@ function PortalShellInner({ children }: { children: React.ReactNode }) {
   );
 }
 
-function RhShellInner({
-  children,
-  sectionsOverride,
-}: {
-  children: React.ReactNode;
-  sectionsOverride?: PortalNavSection[];
-}) {
+function RhShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
@@ -87,10 +78,7 @@ function RhShellInner({
     portalService.getMe().then(setPerfil).catch(console.error);
   }, [router]);
 
-  const sections = useMemo(
-    () => (session ? filterNavSections(sectionsOverride ?? RH_SECTIONS, session) : []),
-    [session, sectionsOverride],
-  );
+  const sections = useMemo(() => (session ? filterNavSections(RH_SECTIONS, session) : []), [session]);
 
   if (!session) return <LoadingScreen />;
 
@@ -107,13 +95,7 @@ function RhShellInner({
   );
 }
 
-function TiShellInner({
-  children,
-  sectionsOverride,
-}: {
-  children: React.ReactNode;
-  sectionsOverride?: PortalNavSection[];
-}) {
+function TiShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
@@ -133,10 +115,7 @@ function TiShellInner({
     portalService.getMe().then(setPerfil).catch(console.error);
   }, [router]);
 
-  const sections = useMemo(
-    () => (session ? filterNavSections(sectionsOverride ?? TI_SECTIONS, session) : []),
-    [session, sectionsOverride],
-  );
+  const sections = useMemo(() => (session ? filterNavSections(TI_SECTIONS, session) : []), [session]);
 
   if (!session) return <LoadingScreen />;
 
@@ -166,9 +145,9 @@ export function TiShell({ children }: { children: React.ReactNode }) {
 }
 
 export function AdminTiShell({ children }: { children: React.ReactNode }) {
-  return <TiShellInner sectionsOverride={ADMIN_TI_SECTIONS}>{children}</TiShellInner>;
+  return <TiShellInner>{children}</TiShellInner>;
 }
 
 export function AdminDhShell({ children }: { children: React.ReactNode }) {
-  return <RhShellInner sectionsOverride={ADMIN_DH_SECTIONS}>{children}</RhShellInner>;
+  return <RhShellInner>{children}</RhShellInner>;
 }

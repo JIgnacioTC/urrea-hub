@@ -103,7 +103,7 @@ export interface ChecadorResult {
   empleadoNombre?: string;
   numeroEmpleado?: string;
   tipoRegistro?: string;
-  horaRegistro?: string;
+  horaRegistro?: string; // ISO UTC timestamp; format with toLocaleTimeString for display
   turnoNombre?: string;
   turnoHorario?: string;
 }
